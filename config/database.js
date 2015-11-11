@@ -11,7 +11,7 @@ module.exports = function (app, mongoose) {
         };
         mongoose.connect(config.get('chesshive.db'), options);
     };
-    connect();
+    //connect();
 
     // Error handler
     mongoose.connection.on('error', function (err) {

@@ -135,7 +135,7 @@ module.exports = function (options) {
         };
 
         this.onConnect = function (player) {
-            logger.debug('player %s arrives', player.name); 
+            logger.debug('player %s arrives', player.name);
 
             var rooms = this;
             player.socket.on('join-room', function (data) {

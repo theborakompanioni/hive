@@ -1,6 +1,6 @@
 var express = require('express');
 var elasticsearch = require('elasticsearch');
-var client = new elasticsearch.Client(); // default to localhost:9200
+//var client = new elasticsearch.Client(); // default to localhost:9200
 
 var router = express.Router();
 
@@ -18,7 +18,7 @@ router.post('/', function(req, res) {
     var content = req.body.content;
     var result = req.body.result;
 
-    client.search({
+    /*client.search({
         index: 'chesshive',
         type: 'game',
         body: {
@@ -41,7 +41,7 @@ router.post('/', function(req, res) {
         }, function (err) {
             res.status(500);
             console.log(err);
-        });
+        });*/
 });
 
 module.exports = router;
