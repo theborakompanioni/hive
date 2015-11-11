@@ -1,0 +1,23 @@
+{
+  "bitwise": true,
+  "browser": true,
+  "camelcase": false,
+  "curly": true,
+  "eqeqeq": true,
+  "esnext": true,
+  "latedef": true,
+  "newcap": false,
+  "noarg": true,
+  "node": true,
+  "strict": true,
+  "undef": true,
+  "unused": true,
+  "globals": {
+    "angular": false,
+    "Messenger": false,
+    "ChessBoard": false,
+    "Chess": false,
+    "io": false,
+    "_": false
+  }
+}
