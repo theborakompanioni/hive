@@ -278,6 +278,16 @@ module.exports = function () {
             this.start();
         };
 
+        this.shouldRestart = function() {
+            var maxRoundsReached = this.digestCount > 300;
+            var shouldRestartGame = maxRoundsReached ||
+                this.instance.game_over() === true ||
+                this.instance.in_draw() === true ||
+                this.possibleMoves.length === 0;
+
+            return shouldRestartGame;
+        };
+
         this.digest = function () {
             logger.debug('game %s digest loop %d starts', this.name, this.digestCount);
             this.cancelDigestTimeout();
@@ -285,22 +295,16 @@ module.exports = function () {
             this.latestDigestTime = Date.now();
             this.nextDigestTime = Date.now() + this.digestTimeout;
 
-            var maxRoundsReached = this.digestCount > 300;
-            var shouldRestartGame = maxRoundsReached ||
-                this.instance.game_over() === true ||
-                this.instance.in_draw() === true ||
-                this.possibleMoves.length === 0;
-
-            if (shouldRestartGame) {
-                this.restart();
-                return;
-            }
-
             var isFirstRun = this.digestCount === 0;
             if (!isFirstRun) {
                 var color = this.instance.turn() === 'b' ? 'black' : 'white';
                 var move = this.getMoveForColorOrRandom(color);
                 this.makeMove(color, move);
+            }
+
+            if (this.shouldRestart()) {
+                this.restart();
+                return;
             }
 
             var firstPlayer = this.players[0];
