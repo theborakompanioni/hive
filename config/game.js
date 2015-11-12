@@ -178,6 +178,7 @@ module.exports = function () {
                 }
             });
         };
+
         this.getMoveForColorOrNull = function (color) {
             var max = 0;
             var moveKey = null;
@@ -202,6 +203,7 @@ module.exports = function () {
 
             return move;
         };
+
         this.getMoveForColorOrRandom = function (color) {
             var move = this.getMoveForColorOrNull(color);
             if (move === null) {
@@ -263,16 +265,19 @@ module.exports = function () {
 
             this.digest();
         };
+
         this.stop = function () {
             if (this.cancelDigestTimeout) {
                 this.cancelDigestTimeout();
                 this.cancelDigestTimeout = noop;
             }
         };
+
         this.restart = function () {
             this.stop();
             this.start();
         };
+
         this.digest = function () {
             logger.debug('game %s digest loop %d starts', this.name, this.digestCount);
             this.cancelDigestTimeout();
@@ -288,6 +293,7 @@ module.exports = function () {
 
             if (shouldRestartGame) {
                 this.restart();
+                return;
             }
 
             var isFirstRun = this.digestCount === 0;
