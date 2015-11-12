@@ -3,12 +3,14 @@ var express = require('express');
 var session = require('express-session');
 var path = require('path');
 var favicon = require('serve-favicon');
-var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var passport = require('passport');
 var flash = require('connect-flash');
+var compression = require('compression');
+
+var logger = require('./config/logging')().standard();
 
 var env = process.env.NODE_ENV || 'default';
 var config = require('config');
@@ -17,6 +19,7 @@ var app = express();
 
 // configure database
 require('./config/database')(app, mongoose);
+require('./config/morgan')(app, __dirname + '/logs', env === 'development' ? 'dev' : 'combined');
 
 // bootstrap data models
 fs.readdirSync(__dirname + '/models').forEach(function (file) {
@@ -24,16 +27,18 @@ fs.readdirSync(__dirname + '/models').forEach(function (file) {
 });
 
 // configure express app
+app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
+app.use(compression());
 app.use(favicon(__dirname + '/client/apps/chesshive/dist/favicon.ico'));
-app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser('S3CRE7'));
 app.use(flash());
-app.use(session({ secret: 'S3CRE7-S3SSI0N', saveUninitialized: true, resave: true } ));
+app.use(session({secret: 'S3CRE7-S3SSI0N', saveUninitialized: true, resave: true}));
 app.use(express.static(path.join(__dirname, 'client/apps/chesshive/dist')));
+
 require('./config/passport')(app, passport);
 app.use(passport.initialize());
 app.use(passport.session());
@@ -59,7 +64,9 @@ app.use('/search', search);
 require('./config/errorHandlers.js')(app);
 
 // launch app server
-var server = require('http').createServer(app).listen(3000);
+var server = require('http').createServer(app).listen(app.get('port'), function () {
+    logger.info('Application started on port %d', server.address().port);
+});
 
 require('./config/socket.js')(server);
 
