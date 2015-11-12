@@ -15,8 +15,8 @@ angular.module('chesshiveApp')
   .factory('chessHiveGameSocket', function (socketFactory) {
     var username = 'Anonymous';
 
-    //var socket = io('http://localhost:3000', {query: 'user=' + username});
-    var socket = io('http://chess.openmrc.com', {query: 'user=' + username});
+    var socket = io('http://localhost:3000', {query: 'user=' + username});
+    //var socket = io('http://chess.openmrc.com', {query: 'user=' + username});
 
     var chessHiveGameSocket = socketFactory({
       ioSocket: socket
