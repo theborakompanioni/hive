@@ -22,36 +22,41 @@ module.exports = function () {
     };
 
     var HiveChessGame = function (room, options) {
-        logger.info('create new game in room: ' + room);
-        var game = new chess.Chess();
-
-        this.name = util.randomString(8);
         this.options = _.defaults(_.extend({}, options), {
             autoRestart: true,
-            restartTimeout: 5000,
+            restartTimeout: 15000,
             maxRounds: 400
         });
-        this.instance = game;
         this.room = room;
-        //creator: socket;
-        this.status = 'waiting';
-        this.creationDate = Date.now();
+        this.name = util.randomString(8);
         this.players = [];
         this.playerCount = {
             white: 0,
             black: 0
         };
-        this.possibleMoves = game.moves({verbose: true});
-        this.suggestedMoves = {
-            white: {},
-            black: {}
+        this.creationDate = Date.now();
+        this.status = 'init';
+
+        logger.info('init new game in room: ' + this.room);
+
+        this._reset = function () {
+            var game = new chess.Chess();
+            this.instance = game;
+
+            this.possibleMoves = game.moves({verbose: true});
+            this.suggestedMoves = {
+                white: {},
+                black: {}
+            };
+            this.lastMoves = [];
+            this.digestCount = 0;
+            this.digestTimeout = DEFAULT_DIGEST_TIMEOUT;
+            this.nextDigestTime = -1;
+            this.latestDigestTime = -1;
+            this.cancelDigestTimeout = noop;
+            this.cancelRestartTimeout = noop;
+            this.colorToMove = 'white';
         };
-        this.lastMoves = [];
-        this.nextDigestTime = -1;
-        this.latestDigestTime = -1;
-        this.digestTimeout = DEFAULT_DIGEST_TIMEOUT;
-        this.cancelDigestTimeout = noop;
-        this.cancelRestartTimeout = noop;
 
         this.hasPlayer = function (player) {
             return !!_.findWhere(this.players, {
@@ -71,6 +76,29 @@ module.exports = function () {
 
             player.socket.emit('player-stats', this.playerCount);
             player.socket.broadcast.to(this.room).emit('player-stats', this.playerCount);
+        };
+
+        this.createTopRatedMoveMessage = function (moveOrUndefined) {
+            var move = moveOrUndefined ||
+                (this.lastMoves.length > 0 ? this.lastMoves[this.lastMoves.length - 1] : null);
+
+            var gameOver = this.isGameOver();
+            var inDraw = this.instance.in_draw();
+            var colorToMove = this.colorToMove;
+            var oppositeColor = colorToMove === 'white' ? 'white' : 'black';
+            return {
+                fen: this.instance.fen(),
+                pgn: this.instance.pgn(),
+                turn: this.instance.turn(),
+                move: move,
+                latestDigestTime: this.latestDigestTime,
+                nextDigestTime: this.nextDigestTime,
+                digestTimeout: this.digestTimeout,
+                gameOver: gameOver,
+                inDraw: inDraw,
+                colorToMove: this.colorToMove,
+                winner: inDraw ? 'draw' : oppositeColor
+            };
         };
 
         this.addPlayer = function (player) {
@@ -106,15 +134,7 @@ module.exports = function () {
                 side: side
             });
 
-            player.socket.emit('new-top-rated-game-move', {
-                fen: this.instance.fen(),
-                pgn: this.instance.pgn(),
-                turn: this.instance.turn(),
-                move: this.lastMoves.length > 0 ? this.lastMoves[this.lastMoves.length - 1] : null,
-                latestDigestTime: this.latestDigestTime,
-                nextDigestTime: this.nextDigestTime,
-                digestTimeout: this.digestTimeout
-            });
+            player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
 
             player.socket.emit('player-stats', this.playerCount);
             player.socket.broadcast.to(this.room).emit('player-stats', this.playerCount);
@@ -249,29 +269,22 @@ module.exports = function () {
             return validMove;
         };
 
-        this.makeMove = function (color, move) {
+        this.makeMove = function (move) {
+            this.suggestedMoves[this.colorToMove] = {};
+
             this.instance.move(move);
             this.lastMoves.push(move);
 
             this.possibleMoves = this.instance.moves({verbose: true});
-            this.suggestedMoves[color] = {};
+
+            this.colorToMove = this.instance.turn() === 'b' ? 'black' : 'white';
         };
 
         this.start = function () {
-            var game = new chess.Chess();
-            this.instance = game;
+            this._reset();
             this.startDate = Date.now();
-            this.possibleMoves = game.moves({verbose: true});
-            this.suggestedMoves = {
-                white: {},
-                black: {}
-            };
-            this.lastMoves = [];
-            this.digestCount = 0;
-            this.nextDigestTime = -1;
-            this.latestDigestTime = -1;
-            this.cancelDigestTimeout = noop;
-            this.cancelRestartTimeout = noop;
+            this.status = 'started';
+            logger.debug('game %s %s', this.name, this.status);
 
             this.digest();
         };
@@ -290,7 +303,7 @@ module.exports = function () {
         };
 
         this.isGameOver = function () {
-            var maxRoundsReached = this.digestCount > this.options.maxRounds;
+            var maxRoundsReached = this.digestCount >= this.options.maxRounds;
             var isGameOver = maxRoundsReached ||
                 this.instance.game_over() === true ||
                 this.instance.in_draw() === true ||
@@ -314,40 +327,39 @@ module.exports = function () {
             var firstPlayer = this.players[0];
             var gameHasPlayers = !!firstPlayer;
 
+            var currentColorToMove = this.colorToMove;
+
+            var nextDigest = this.digestTimeout;
+            var oppositeColorTeamSize = this.playerCount[currentColorToMove === 'white' ? 'black' : 'white'];
+            if (oppositeColorTeamSize <= 0) {
+                nextDigest = Math.min(DEFAULT_DIGEST_TIMEOUT, 3000);
+            }
+
+            this.nextDigestTime = Date.now() + nextDigest;
+
             if (!this.isGameOver()) {
-                var colorToMove = this.instance.turn() === 'b' ? 'black' : 'white';
                 var isFirstRun = this.digestCount === 0;
+
+                var moveMadeOrNull = null;
+
                 if (!isFirstRun) {
-                    var move = this.getMoveForColorOrRandom(colorToMove);
-                    this.makeMove(colorToMove, move);
+                    var move = this.getMoveForColorOrRandom(currentColorToMove);
+                    this.makeMove(move);
+                    moveMadeOrNull = move;
                 }
-
-                var nextDigest = this.digestTimeout;
-                var oppositeColorTeamSize = this.playerCount[colorToMove === 'white' ? 'black' : 'white'];
-                if (oppositeColorTeamSize <= 0) {
-                    nextDigest = Math.min(DEFAULT_DIGEST_TIMEOUT, 3000);
-                }
-
-                this.nextDigestTime = Date.now() + nextDigest;
 
                 if (gameHasPlayers) {
-                    var newTopRatedGameMoveMsg = {
-                        fen: this.instance.fen(),
-                        pgn: this.instance.pgn(),
-                        turn: this.instance.turn(),
-                        move: move,
-                        latestDigestTime: this.latestDigestTime,
-                        nextDigestTime: this.nextDigestTime,
-                        digestTimeout: this.digestTimeout
-                    };
-
+                    var newTopRatedGameMoveMsg = this.createTopRatedMoveMessage(moveMadeOrNull);
                     firstPlayer.socket.emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
                     firstPlayer.socket.broadcast.to(this.room).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
                 }
+            }
 
+            if (!this.isGameOver()) {
                 this.cancelDigestTimeout = (function scheduleNextDigest(game, timeout, nextDigestCount) {
                     logger.debug('game %s schedule loop digest %d in %d seconds',
                         game.name, nextDigestCount, Math.floor(timeout / 1000));
+
                     var cancelTimeoutId = setTimeout(function () {
                         self.cancelDigestTimeout = noop;
                         game.digest();
@@ -358,35 +370,39 @@ module.exports = function () {
                         clearTimeout(cancelTimeoutId);
                     };
                 })(this, nextDigest, this.digestCount + 1);
-            }
+            } else {
+                this.status = 'ended';
+                logger.debug('game %s %s', this.name, this.status);
 
-            logger.debug('game %s digest loop %d ended', this.name, this.digestCount);
-            this.digestCount++;
-
-            if (this.isGameOver()) {
+                var shouldRestart = this.shouldRestart();
                 if (gameHasPlayers) {
                     var gameOverMsg = {
-                        autoRestart: this.options.autoRestart,
+                        winner: currentColorToMove,
+                        inDraw: this.instance.in_draw(),
+                        restarts: shouldRestart,
                         restartTime: Date.now() + this.options.restartTimeout
                     };
                     firstPlayer.socket.emit('game-over', gameOverMsg);
                     firstPlayer.socket.broadcast.to(this.room).emit('game-over', gameOverMsg);
                 }
+
+                if (shouldRestart) {
+                    this.cancelRestartTimeout = (function scheduleRestart(game, timeout) {
+                        logger.debug('game %s restarts in %d seconds', game.name, Math.floor(timeout / 1000));
+                        var cancelTimeoutId = setTimeout(function () {
+                            game.restart();
+                        }, timeout);
+
+                        return function () {
+                            logger.debug('game %s cancel restart', game.name);
+                            clearTimeout(cancelTimeoutId);
+                        };
+                    })(this, this.options.restartTimeout);
+                }
             }
 
-            if (this.shouldRestart()) {
-                this.cancelRestartTimeout = (function schedulRestart(game, timeout) {
-                    logger.debug('game %s restarts in %d seconds', game.name, Math.floor(timeout / 1000));
-                    var cancelTimeoutId = setTimeout(function () {
-                        game.restart();
-                    }, timeout);
-
-                    return function () {
-                        logger.debug('game %s cancel restart', game.name);
-                        clearTimeout(cancelTimeoutId);
-                    };
-                })(this, this.options.restartTimeout);
-            }
+            logger.debug('game %s digest loop %d ended', this.name, this.digestCount);
+            this.digestCount++;
         };
 
         var chooseColorForNewPlayer = function (game, player) {

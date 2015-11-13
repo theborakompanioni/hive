@@ -25,7 +25,29 @@ angular.module('chesshiveApp')
     return chessHiveGameSocket;
   })
 
-  .directive('chessHivePlayerStats', function ($timeout, chessHiveGameSocket) {
+  .directive('chesshiveGameOverMessage', function ($timeout, chessHiveGameSocket) {
+    return {
+      scope: {},
+      template: '<div class="alert alert-info" data-ng-show="showGameOverMessage">' +
+      '{{ gameOverData | json }}' +
+      '</div>',
+      controller: function ($scope, $timeout) {
+        $scope.showGameOverMessage = false;
+
+        chessHiveGameSocket.forward('game-over', $scope);
+        $scope.$on('socket:game-over', function (event, data) {
+          $scope.gameOverData = data;
+          $scope.showGameOverMessage = true;
+
+          if ($scope.gameOverData.restarts)
+            $timeout(function () {
+              $scope.showGameOverMessage = false;
+            }, $scope.gameOverData.restartTime - Date.now());
+        });
+      }
+    };
+  })
+  .directive('chesshivePlayerStats', function ($timeout, chessHiveGameSocket) {
     return {
       scope: {},
       template: '<ul class="list-unstyled">' +
@@ -34,9 +56,7 @@ angular.module('chesshiveApp')
       '</ul>',
       controller: function ($scope) {
         $scope.playerStats = {};
-        /*
-         * A new move has been suggested by a player => update the UI with information
-         */
+
         chessHiveGameSocket.forward('player-stats', $scope);
         $scope.$on('socket:player-stats', function (event, data) {
           $scope.playerStats = data;
@@ -45,7 +65,7 @@ angular.module('chesshiveApp')
     };
   })
 
-  .directive('chessHiveSuggestedMoves', function ($timeout, chessHiveGameSocket) {
+  .directive('chesshiveSuggestedMoves', function ($timeout, chessHiveGameSocket) {
     return {
       scope: {
         isInTurn: '='
@@ -94,18 +114,21 @@ angular.module('chesshiveApp')
     };
   })
 
-  .directive('chessHiveTimeToNextDigest', function ($timeout, chessHiveGameSocket) {
+  .directive('chesshiveTimeToNextDigest', function ($timeout, chessHiveGameSocket) {
     return {
       scope: {},
       template: '<div>' +
-      '{{timeToNextDigest / 1000 | number:precision}}s' +
-      '<div class="progress" style="height: 5px;">' +
-      '<div class="progress-bar progress-bar-striped active" ' +
-      ' role="progressbar" aria-valuenow="{{timeToNextDigest}}" aria-valuemin="0" aria-valuemax="{{digestTimeout}}" ' +
-      ' style="width: {{ percentage | number:0 }}%">' +
-      '<span class="sr-only">{{ percentage | number:0 }}% Complete</span>' +
-      '</div>' +
-      '</div>' +
+      ' <div data-ng-show="gameOver">Game over.</div>' +
+      ' <div data-ng-show="!gameOver">' +
+      '  {{timeToNextDigest / 1000 | number:precision}}s' +
+      '  <div class="progress" style="height: 5px;">' +
+      '   <div class="progress-bar progress-bar-striped active" ' +
+      '     role="progressbar" aria-valuenow="{{timeToNextDigest}}" aria-valuemin="0" aria-valuemax="{{digestTimeout}}" ' +
+      '     style="width: {{ percentage | number:0 }}%">' +
+      '    <span class="sr-only">{{ percentage | number:0 }}% Complete</span>' +
+      '   </div>' +
+      '  </div>' +
+      ' </div>' +
       '</div>',
       controller: function ($scope) {
         $scope.fullSecond = 0;
@@ -117,39 +140,44 @@ angular.module('chesshiveApp')
         var countDownTimerTimeout = null;
         chessHiveGameSocket.forward('new-top-rated-game-move', $scope);
         $scope.$on('socket:new-top-rated-game-move', function (event, data) {
-          $scope.digestTimeout = data.digestTimeout;
-          var timeToNextDigestInMs = data.nextDigestTime - Date.now();
-
           $timeout.cancel(countDownTimerTimeout);
-          var updateCountDownTimer = function () {
-            if (timeToNextDigestInMs <= 0) {
-              $scope.timeToNextDigest = 0;
-              return -1;
-            }
 
-            var nextTimerUpdate = 1000;
-            $scope.precision = 0;
+          $scope.gameOver = data.gameOver;
+          if (!$scope.gameOver) {
+            $scope.digestTimeout = data.digestTimeout;
+            var timeToNextDigestInMs = data.nextDigestTime - Date.now();
 
-            $scope.timeToNextDigest = timeToNextDigestInMs;
+            var updateCountDownTimer = function () {
+              if (timeToNextDigestInMs <= 0) {
+                $scope.timeToNextDigest = 0;
+                return -1;
+              }
 
-            $scope.fullSecond = Math.floor($scope.timeToNextDigest / 1000);
-            $scope.percentage = $scope.timeToNextDigest / $scope.digestTimeout * 100;
+              var nextTimerUpdate = 1000;
+              $scope.precision = 0;
 
-            if ($scope.timeToNextDigest <= 11000) {
-              nextTimerUpdate = 100;
-            }
-            if ($scope.timeToNextDigest < 10000) {
-              $scope.precision = 1;
-            }
+              $scope.timeToNextDigest = timeToNextDigestInMs;
 
-            var offset = ($scope.timeToNextDigestInMs - ($scope.fullSecond * 1000));
-            nextTimerUpdate = nextTimerUpdate - offset;
+              $scope.fullSecond = Math.floor($scope.timeToNextDigest / 1000);
+              $scope.percentage = $scope.timeToNextDigest / $scope.digestTimeout * 100;
 
-            countDownTimerTimeout = $timeout(updateCountDownTimer, nextTimerUpdate);
-            timeToNextDigestInMs = data.nextDigestTime - Date.now();
-            return countDownTimerTimeout;
-          };
-          countDownTimerTimeout = updateCountDownTimer();
+              if ($scope.timeToNextDigest <= 11000) {
+                nextTimerUpdate = 100;
+              }
+              if ($scope.timeToNextDigest < 10000) {
+                $scope.precision = 1;
+              }
+
+              var offset = ($scope.timeToNextDigestInMs - ($scope.fullSecond * 1000));
+              nextTimerUpdate = nextTimerUpdate - offset;
+
+              countDownTimerTimeout = $timeout(updateCountDownTimer, nextTimerUpdate);
+              timeToNextDigestInMs = data.nextDigestTime - Date.now();
+              return countDownTimerTimeout;
+            };
+
+            countDownTimerTimeout = updateCountDownTimer();
+          }
         });
       }
     };

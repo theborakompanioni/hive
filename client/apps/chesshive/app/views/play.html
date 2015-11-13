@@ -1,5 +1,7 @@
 <div class="row" data-ng-controller="HiveChessGameCtrl">
-
+  <div class="col-xs-12">
+    <div chesshive-game-over-message></div>
+  </div>
   <div class="col-sm-4 col-md-5">
     <div class="panel" data-ng-class="{
       'panel-info': !model.voted && model.isInTurn,
@@ -15,15 +17,15 @@
       <div class="panel-body">
 
         <p id="player-stats">
-          <span data-chess-hive-player-stats></span>
+          <span data-chesshive-player-stats></span>
         </p>
 
         <p id="time-to-next-digest" style="font-size: 4em;">
-          <span data-chess-hive-time-to-next-digest></span>
+          <span data-chesshive-time-to-next-digest></span>
         </p>
 
         <p id="vote-stats" data-ng-show="model.isInTurn">
-          <span data-chess-hive-suggested-moves data-is-in-turn="model.isInTurn"></span>
+          <span data-chesshive-suggested-moves data-is-in-turn="model.isInTurn"></span>
         </p>
 
         <p data-ng-show="!model.isInTurn">
