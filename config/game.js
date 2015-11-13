@@ -21,11 +21,16 @@ module.exports = function () {
         // -> disconnected
     };
 
-    var HiveChessGame = function (room) {
+    var HiveChessGame = function (room, options) {
         logger.info('create new game in room: ' + room);
         var game = new chess.Chess();
 
         this.name = util.randomString(8);
+        this.options = _.defaults(_.extend({}, options), {
+            autoRestart: true,
+            restartTimeout: 5000,
+            maxRounds: 400
+        });
         this.instance = game;
         this.room = room;
         //creator: socket;
@@ -46,6 +51,7 @@ module.exports = function () {
         this.latestDigestTime = -1;
         this.digestTimeout = DEFAULT_DIGEST_TIMEOUT;
         this.cancelDigestTimeout = noop;
+        this.cancelRestartTimeout = noop;
 
         this.hasPlayer = function (player) {
             return !!_.findWhere(this.players, {
@@ -170,10 +176,13 @@ module.exports = function () {
                 playerInRoom.socket.broadcast.to(game.room).emit('suggested-moves', suggestedMovesMsg);
 
                 var teamSize = game.playerCount[playerInRoom.side];
-                var countOfSuggestedMove = game.suggestedMoves[playerInRoom.side][acceptedSuggestedMove.san];
+                var suggestedMovesForCurrentTeam = game.suggestedMoves[playerInRoom.side];
+                var countOfSuggestedMove = suggestedMovesForCurrentTeam[acceptedSuggestedMove.san];
                 var moreThanHalfHaveVotedForCurrentMove = countOfSuggestedMove > Math.floor(teamSize / 2);
 
-                if (moreThanHalfHaveVotedForCurrentMove) {
+                var countOfVotesForTeam = _.sum(suggestedMovesForCurrentTeam);
+                var allPlayersOfTeamVoted = countOfVotesForTeam === teamSize;
+                if (allPlayersOfTeamVoted || moreThanHalfHaveVotedForCurrentMove) {
                     game.digest();
                 }
             });
@@ -262,85 +271,122 @@ module.exports = function () {
             this.nextDigestTime = -1;
             this.latestDigestTime = -1;
             this.cancelDigestTimeout = noop;
+            this.cancelRestartTimeout = noop;
 
             this.digest();
         };
 
         this.stop = function () {
-            if (this.cancelDigestTimeout) {
-                this.cancelDigestTimeout();
-                this.cancelDigestTimeout = noop;
-            }
+            this.cancelDigestTimeout();
+            this.cancelDigestTimeout = noop;
         };
 
         this.restart = function () {
+            this.cancelRestartTimeout();
+            this.cancelRestartTimeout = noop;
+
             this.stop();
             this.start();
         };
 
-        this.shouldRestart = function() {
-            var maxRoundsReached = this.digestCount > 300;
-            var shouldRestartGame = maxRoundsReached ||
+        this.isGameOver = function () {
+            var maxRoundsReached = this.digestCount > this.options.maxRounds;
+            var isGameOver = maxRoundsReached ||
                 this.instance.game_over() === true ||
                 this.instance.in_draw() === true ||
                 this.possibleMoves.length === 0;
 
-            return shouldRestartGame;
+            return isGameOver;
+        };
+
+        this.shouldRestart = function () {
+            return this.isGameOver() && !!this.options.autoRestart;
         };
 
         this.digest = function () {
+            var self = this;
+
             logger.debug('game %s digest loop %d starts', this.name, this.digestCount);
             this.cancelDigestTimeout();
 
             this.latestDigestTime = Date.now();
-            this.nextDigestTime = Date.now() + this.digestTimeout;
-
-            var isFirstRun = this.digestCount === 0;
-            if (!isFirstRun) {
-                var color = this.instance.turn() === 'b' ? 'black' : 'white';
-                var move = this.getMoveForColorOrRandom(color);
-                this.makeMove(color, move);
-            }
-
-            if (this.shouldRestart()) {
-                this.restart();
-                return;
-            }
 
             var firstPlayer = this.players[0];
-            if (firstPlayer) {
-                var newTopRatedGameMoveMsg = {
-                    fen: this.instance.fen(),
-                    pgn: this.instance.pgn(),
-                    turn: this.instance.turn(),
-                    move: move,
-                    latestDigestTime: this.latestDigestTime,
-                    nextDigestTime: this.nextDigestTime,
-                    digestTimeout: this.digestTimeout
-                };
+            var gameHasPlayers = !!firstPlayer;
 
-                firstPlayer.socket.emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
-                firstPlayer.socket.broadcast.to(this.room).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
+            if (!this.isGameOver()) {
+                var colorToMove = this.instance.turn() === 'b' ? 'black' : 'white';
+                var isFirstRun = this.digestCount === 0;
+                if (!isFirstRun) {
+                    var move = this.getMoveForColorOrRandom(colorToMove);
+                    this.makeMove(colorToMove, move);
+                }
+
+                var nextDigest = this.digestTimeout;
+                var oppositeColorTeamSize = this.playerCount[colorToMove === 'white' ? 'black' : 'white'];
+                if (oppositeColorTeamSize <= 0) {
+                    nextDigest = Math.min(DEFAULT_DIGEST_TIMEOUT, 3000);
+                }
+
+                this.nextDigestTime = Date.now() + nextDigest;
+
+                if (gameHasPlayers) {
+                    var newTopRatedGameMoveMsg = {
+                        fen: this.instance.fen(),
+                        pgn: this.instance.pgn(),
+                        turn: this.instance.turn(),
+                        move: move,
+                        latestDigestTime: this.latestDigestTime,
+                        nextDigestTime: this.nextDigestTime,
+                        digestTimeout: this.digestTimeout
+                    };
+
+                    firstPlayer.socket.emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
+                    firstPlayer.socket.broadcast.to(this.room).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
+                }
+
+                this.cancelDigestTimeout = (function scheduleNextDigest(game, timeout, nextDigestCount) {
+                    logger.debug('game %s schedule loop digest %d in %d seconds',
+                        game.name, nextDigestCount, Math.floor(timeout / 1000));
+                    var cancelTimeoutId = setTimeout(function () {
+                        self.cancelDigestTimeout = noop;
+                        game.digest();
+                    }, timeout);
+
+                    return function () {
+                        logger.debug('game %s cancel schedule for digest loop %d', game.name, nextDigestCount);
+                        clearTimeout(cancelTimeoutId);
+                    };
+                })(this, nextDigest, this.digestCount + 1);
             }
-
-
-            var self = this;
-            this.cancelDigestTimeout = (function scheduleNextDigest(game, timeout, nextDigestCount) {
-                logger.debug('game %s schedule loop digest %d in %d seconds',
-                    self.name, nextDigestCount, Math.floor(timeout / 1000));
-                var cancelTimeoutId = setTimeout(function () {
-                    self.cancelDigestTimeout = noop;
-                    game.digest();
-                }, timeout);
-
-                return function () {
-                    logger.debug('game %s cancel schedule for digest loop %d', self.name, nextDigestCount);
-                    clearTimeout(cancelTimeoutId);
-                };
-            })(this, this.digestTimeout, this.digestCount + 1);
 
             logger.debug('game %s digest loop %d ended', this.name, this.digestCount);
             this.digestCount++;
+
+            if (this.isGameOver()) {
+                if (gameHasPlayers) {
+                    var gameOverMsg = {
+                        autoRestart: this.options.autoRestart,
+                        restartTime: Date.now() + this.options.restartTimeout
+                    };
+                    firstPlayer.socket.emit('game-over', gameOverMsg);
+                    firstPlayer.socket.broadcast.to(this.room).emit('game-over', gameOverMsg);
+                }
+            }
+
+            if (this.shouldRestart()) {
+                this.cancelRestartTimeout = (function schedulRestart(game, timeout) {
+                    logger.debug('game %s restarts in %d seconds', game.name, Math.floor(timeout / 1000));
+                    var cancelTimeoutId = setTimeout(function () {
+                        game.restart();
+                    }, timeout);
+
+                    return function () {
+                        logger.debug('game %s cancel restart', game.name);
+                        clearTimeout(cancelTimeoutId);
+                    };
+                })(this, this.options.restartTimeout);
+            }
         };
 
         var chooseColorForNewPlayer = function (game, player) {
