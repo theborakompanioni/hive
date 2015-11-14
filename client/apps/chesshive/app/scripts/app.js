@@ -21,6 +21,24 @@ angular
     'nywton.chessboard',
     'btford.socket-io'
   ])
+  .value('applicationConfig', (function () {
+    var isBuildProcessReplacingVars = function hackyWayToSeeVarReplacement() {
+      return '@@<!--' + '%build:replace%'.toLowerCase() + '-->' !== (function() {
+        return '@@<!--%build:replace%-->';
+      })();
+    };
+    var defaultConfig = {
+      name: 'unnamed-app',
+      io: {
+        host: 'http://localhost:3000'
+      }
+    };
+
+    var replacedConfig = '<!--%app%-->';
+
+    return isBuildProcessReplacingVars() ? replacedConfig : defaultConfig;
+
+  })())
   .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
@@ -56,4 +74,21 @@ angular
       .moveSpeed('slow')
       .position('')
       .pieceTheme('images/chesspieces/wikipedia/{piece}.png');
-  }]);
+  }])
+
+  .factory('chessHiveGameSocket', function (socketFactory, applicationConfig) {
+    var username = 'Anonymous';
+
+    var socketHost = applicationConfig.io.host;
+    var socket = io(socketHost, {query: 'user=' + username});
+    //var socket = io('http://chess.openmrc.com', {query: 'user=' + username});
+
+    var chessHiveGameSocket = socketFactory({
+      ioSocket: socket
+    });
+
+    return chessHiveGameSocket;
+  })
+  .controller('NavbarCtrl', function (applicationConfig) {
+    this.appName = applicationConfig.name;
+  });

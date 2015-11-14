@@ -1,6 +1,8 @@
 // Generated on 2015-11-08 using generator-angular 0.14.0
 'use strict';
 
+var serverConf = require('../../../config/app')();
+
 // # Globbing
 // for performance reasons we're only matching one level down:
 // 'test/spec/{,*/}*.js'
@@ -416,6 +418,33 @@ module.exports = function (grunt) {
       }
     },
 
+    replace: {
+      dist: {
+        options: {
+          patterns: [{
+            match: '<!--%build:replace%-->',
+            replacement: 'yes'
+          }, {
+            match: /('|")<!--%app%-->('|")/,
+            replacement: function () {
+              return JSON.stringify(serverConf.get('ui:app'));
+            }
+          }, {
+            match: /http:\/\/localhost:3000\/socket.io\/socket.io.js/,
+            replacement: function () {
+              return serverConf.get('ui:app').io.host + '/socket.io/socket.io.js';
+            }
+          }]
+        },
+        files: [{
+          expand: true,
+          cwd: '<%= yeoman.dist %>',
+          src: ['scripts/*.js', '*.html'],
+          dest: '<%= yeoman.dist %>'
+        }]
+      }
+    },
+
     // Run some tasks in parallel to speed up the build process
     concurrent: {
       server: [
@@ -485,7 +514,8 @@ module.exports = function (grunt) {
     'uglify',
     'filerev',
     'usemin',
-    'htmlmin'
+    'htmlmin',
+    'replace'
   ]);
 
   grunt.registerTask('default', [

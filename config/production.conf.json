@@ -2,7 +2,7 @@
   "app": {
     "name": "chesshive",
     "host": "chess.openmrc.com",
-    "port": "80",
+    "port": "3000",
     "mongo": {
       "db": "mongodb://localhost/test"
     },
@@ -13,6 +13,14 @@
     "morgan": {
       "dir": "logs",
       "format": "combined"
+    }
+  },
+  "ui": {
+    "app": {
+      "name": "chesshive",
+      "io": {
+        "host": "http://chess.openmrc.com:3000"
+      }
     }
   }
 }

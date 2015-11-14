@@ -1,6 +1,6 @@
-var config = require('config');
+var mongoose = require('mongoose');
 
-module.exports = function (app, mongoose) {
+module.exports = function (app, config) {
 
     var connect = function () {
         var options = {
@@ -9,7 +9,7 @@ module.exports = function (app, mongoose) {
             },
             auto_reconnect:true
         };
-        mongoose.connect(config.get('chesshive.db'), options);
+        mongoose.connect(config.db, options);
     };
     //connect();
 

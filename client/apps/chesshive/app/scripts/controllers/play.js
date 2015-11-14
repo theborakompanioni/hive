@@ -12,19 +12,6 @@ angular.module('chesshiveApp')
 
   })
 
-  .factory('chessHiveGameSocket', function (socketFactory) {
-    var username = 'Anonymous';
-
-    var socket = io('http://localhost:3000', {query: 'user=' + username});
-    //var socket = io('http://chess.openmrc.com', {query: 'user=' + username});
-
-    var chessHiveGameSocket = socketFactory({
-      ioSocket: socket
-    });
-
-    return chessHiveGameSocket;
-  })
-
   .directive('chesshiveGameOverMessage', function ($timeout, chessHiveGameSocket) {
     return {
       scope: {},
@@ -53,10 +40,11 @@ angular.module('chesshiveApp')
           $scope.gameOverData = data;
           $scope.showGameOverMessage = true;
 
-          if ($scope.gameOverData.restarts)
+          if ($scope.gameOverData.restarts) {
             $timeout(function () {
               $scope.showGameOverMessage = false;
             }, $scope.gameOverData.restartTime - Date.now());
+          }
         });
       }
     };
@@ -186,7 +174,7 @@ angular.module('chesshiveApp')
         };
 
         $scope.$watch('time', function (newValue) {
-          if(newValue) {
+          if (newValue) {
             $scope.max = newValue - Date.now();
             updateCountDownTimer();
           }

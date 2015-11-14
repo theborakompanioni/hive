@@ -31,7 +31,8 @@
 
 <!-- Add your site or application content here -->
 <div class="header">
-  <div class="navbar navbar-default" role="navigation">
+  <div class="navbar navbar-default" role="navigation"
+       data-ng-controller="NavbarCtrl as navbar">
     <div class="container">
       <div class="navbar-header">
 
@@ -43,8 +44,8 @@
         </button>
 
         <a class="navbar-brand" href="#/">
-          <img style="  max-height: 30px; margin-top: -7px; display: inline-block;"
-               src="images/chesspieces/wikipedia/bK.png" alt="chesshive logo"> chesshive</a>
+          <img style="max-height: 30px; margin-top: -7px; display: inline-block;"
+               src="images/chesspieces/wikipedia/bK.png" alt="app logo"> {{ navbar.appName }}</a>
       </div>
 
       <div class="collapse navbar-collapse" id="js-navbar-collapse">

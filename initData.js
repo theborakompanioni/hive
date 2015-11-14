@@ -1,7 +1,8 @@
 var fs = require('fs');
 var mongoose = require('mongoose');
-var config = require('config');
-mongoose.connect(config.get('chesshive.db'));
+var conf = require('./config/app')().get('app');
+
+mongoose.connect(conf.get('app:mongo').db);
 //mongoose.connect('mongodb://localhost/test');
 
 fs.readdirSync(__dirname + '/models').forEach(function (file) {
@@ -39,7 +40,7 @@ User.findOne({email: 'foo@bar.org'} ,function (err, user) {
 /* Init elastic search server */
 
 var elasticsearch = require('elasticsearch');
-var connectionString = "http://"+config.get('chesshive.es.host')+":"+config.get('chesshive.es.port');
+var connectionString = "http://"+conf.elasticsearch.host+":"+conf.elasticsearch.port;
 var client = new elasticsearch.Client({
 host: connectionString,
 log: 'trace'
