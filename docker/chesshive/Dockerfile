@@ -1,7 +1,7 @@
 FROM node:0.10.40
 MAINTAINER Thebora Kompanioni
 
-ENV GITHUB_REPO=https://github.com/theborakompanioni/chesshive.io.git
+ENV GITHUB_REPO=https://github.com/theborakompanioni/chesshive.git
 
 RUN mkdir -p /var/www/app
 WORKDIR /var/www/app

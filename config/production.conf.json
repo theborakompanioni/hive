@@ -1,0 +1,18 @@
+{
+  "app": {
+    "name": "chesshive",
+    "host": "chess.openmrc.com",
+    "port": "80",
+    "mongo": {
+      "db": "mongodb://localhost/test"
+    },
+    "elasticsearch": {
+      "host": "localhost",
+      "port": "9200"
+    },
+    "morgan": {
+      "dir": "logs",
+      "format": "combined"
+    }
+  }
+}

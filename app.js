@@ -13,7 +13,9 @@ var compression = require('compression');
 var logger = require('./config/logging')().standard();
 
 var env = process.env.NODE_ENV || 'default';
-var config = require('config');
+var DEFAULT_PORT = 3000;
+
+var conf = require('./config/app')();
 
 var app = express();
 
@@ -27,7 +29,7 @@ fs.readdirSync(__dirname + '/models').forEach(function (file) {
 });
 
 // configure express app
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || conf.get('app:port') || DEFAULT_PORT);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 app.use(compression());
@@ -63,9 +65,11 @@ app.use('/search', search);
 // configure error handlers
 require('./config/errorHandlers.js')(app);
 
+var appName = conf.get('app:name') || 'unnamed';
+
 // launch app server
 var server = require('http').createServer(app).listen(app.get('port'), function () {
-    logger.info('Application started on port %d', server.address().port);
+    logger.info('Application %s started on port %d', appName, server.address().port);
 });
 
 require('./config/socket.js')(server);
