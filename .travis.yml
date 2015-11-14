@@ -1,0 +1,23 @@
+sudo: false
+language: node_js
+node_js:
+  - '0.10'
+cache:
+  directories:
+    - node_modules
+    - client/apps/chesshive/node_modules
+    - client/apps/chesshive/bower_components
+before_install:
+  - 'export CHROME_BIN=chromium-browser'
+  - 'export DISPLAY=:99.0'
+  - 'sh -e /etc/init.d/xvfb start'
+  - 'phantomjs --version'
+  - 'firefox --version'
+  - 'chromium-browser --version'
+before_script:
+  - 'npm install -g grunt-cli'
+  - 'npm install -g karma-cli'
+  - 'npm install -g bower'
+script:
+  - 'npm --prefix ./client/apps/chesshive install ./client/apps/chesshive'
+  - 'export NODE_ENV=production && grunt --base ./client/apps/chesshive --gruntfile ./client/apps/chesshive/Gruntfile.js build'
