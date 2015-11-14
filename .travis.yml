@@ -2,6 +2,10 @@ sudo: false
 language: node_js
 node_js:
   - '0.10'
+env:
+  global:
+  - GH_REF: github.com/theborakompanioni/hive.git
+  - secure: "aSLo3MW2bHMVC643uv+cIaC7aYPe4CJTxMAp5Yp/LH/QdTQPGeh55P9pshJUaY2vI934XrNF1zRbAI+aUCJOysRZrkg9IVdt3WHQUB9rE+rIX7lJeGkacdIaxmMFlkSX6ZZKcv/gRN9wDiDxwqZI65Q+fogAeAs5qKFxO8+DgvqjHrGNg4pBcy5bgg/SLXwS9RhYOFsjNBH4kUpsevHMtAvXGoC/RVO+kUQajlyGT47Mv09w4rmR6oBL8hNlFFmb3kRRytOTp/wjNAYhAVoDM3cYo4mLZ7/atpcqYH31Ji8C8GbGGZAqq8sm6eKZJQLY2QjTk6yBu62Dbms7tNFeUWAK6xLUbEBhwOC+CPyFD+jouANmGsczj8NYpZZvlERmoWaqJi2hMzcx7XhaOFEZq+HQn78+h/ayUEZUSl7iBq15HAHhtPgguSYNtRo6LttCUUNVO0QXcO182AldUGGbZ8E/W2TnGvJ8TAJE0Q5hw4Wr2r7gZdn+6J7ev+GbSOv9ZGx/MZJUr4OU65u21MoLOusRY10YG7KvNrxZ73iKJ7JpZK7XuQ/dwBJHswvFmuWBFwx+/eMlhhdgx9BcScx6GTlVvBZph8mIxR7IEFjFjSZH6Wt+2ObMy7G4R8OFlu1XEnl1k+K+GkR01gniGooZ3Ndze/Kb7pN1NbfTVGmQfEc="
 cache:
   directories:
     - node_modules
@@ -21,3 +25,5 @@ before_script:
 script:
   - 'npm --prefix ./client/apps/chesshive install ./client/apps/chesshive'
   - 'export NODE_ENV=production && grunt --base ./client/apps/chesshive --gruntfile ./client/apps/chesshive/Gruntfile.js build'
+after_script:
+  - 'sh deploy-ghpages.sh'
