@@ -1,0 +1,38 @@
+{
+  "name": "angular-chessboard",
+  "version": "0.0.5",
+  "license": "MIT",
+  "description": "Chess Board Directive for AngularJS",
+  "main": [
+    "dist/angular-chessboard.min.js"
+  ],
+  "keywords": [
+    "chess",
+    "board",
+    "chessboard",
+    "angular"
+  ],
+  "authors": [
+    "theborakompanioni"
+  ],
+  "dependencies": {
+    "angular": "~1.2.13",
+    "chessboard.js": "~0.3.2",
+    "jquery": "~2.1.0"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.2.13",
+    "angular-scenario": "~1.2.13"
+  },
+  "homepage": "https://github.com/theborakompanioni/angular-chessboard",
+  "_release": "0.0.5",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.0.5",
+    "commit": "da209ff555a133bcd71f6d5e573cc8968ab77a37"
+  },
+  "_source": "git://github.com/theborakompanioni/angular-chessboard.git",
+  "_target": "~0.0.5",
+  "_originalSource": "theborakompanioni/angular-chessboard",
+  "_direct": true
+}
