@@ -28,8 +28,22 @@ angular.module('chesshiveApp')
   .directive('chesshiveGameOverMessage', function ($timeout, chessHiveGameSocket) {
     return {
       scope: {},
-      template: '<div class="alert alert-info" data-ng-show="showGameOverMessage">' +
-      '{{ gameOverData | json }}' +
+      template: '<div class="panel panel-default" data-ng-if="showGameOverMessage">' +
+      ' <div class="panel-heading">' +
+      '  <h4>Game over</h4>' +
+      ' </div>' +
+      ' <div class="panel-body">' +
+      '  <div class="alert alert-info">' +
+      '   {{ gameOverData | json }}' +
+      '  </div>' +
+      '  <div data-ng-if="gameOverData.restarts" ' +
+      '    data-chesshive-countdown ' +
+      '    data-time="gameOverData.restartTime"' +
+      '    data-show-progress-bar="true"' +
+      '   ></div>' +
+      ' </div>' +
+      ' <div class="panel-footer">' +
+      ' </div>' +
       '</div>',
       controller: function ($scope, $timeout) {
         $scope.showGameOverMessage = false;
@@ -113,22 +127,83 @@ angular.module('chesshiveApp')
       }
     };
   })
+  .directive('chesshiveCountdown', function ($timeout) {
+    return {
+      scope: {
+        time: '=',
+        max: '=',
+        showProgressBar: '@'
+      },
+      template: '<div data-ng-show="countdown >= 0">' +
+      ' {{countdown / 1000 | number:precision}}s' +
+      ' <div class="progress" data-ng-show="showProgressBar" style="height: 5px;">' +
+      '  <div class="progress-bar progress-bar-striped active" ' +
+      '    role="progressbar" aria-valuenow="{{countdown}}" aria-valuemin="0" aria-valuemax="{{timeLengthInMs}}" ' +
+      '    style="width: {{ percentage | number:0 }}%">' +
+      '   <span class="sr-only">{{ percentage | number:0 }}% Complete</span>' +
+      '  </div>' +
+      ' </div>' +
+      '</div>',
+      controller: function ($scope) {
+        $scope.showProgressBar = $scope.showProgressBar !== false;
+        $scope.fullSecond = 0;
+        $scope.precision = 0;
+        $scope.percentage = 0;
+        $scope.countdown = 0;
+        $scope.max = 0;
+        var cancelTimeout = angular.noop;
 
+        var updateCountDownTimer = function () {
+          cancelTimeout();
+
+          var nextTimerUpdate = 100;
+          $scope.countdown = $scope.time - Date.now();
+          if ($scope.countdown <= 0) {
+            $scope.countdown = 0;
+          } else {
+            $scope.precision = 0;
+
+            $scope.fullSecond = Math.floor($scope.countdown / 1000);
+            $scope.percentage = $scope.countdown / $scope.max * 100;
+
+            if ($scope.countdown <= 11000) {
+              nextTimerUpdate = 10;
+            }
+            if ($scope.countdown < 10000) {
+              $scope.precision = 1;
+            }
+
+            var offset = ($scope.countdown - ($scope.fullSecond * 1000));
+            nextTimerUpdate = nextTimerUpdate - offset;
+          }
+
+          var timeoutId = $timeout(updateCountDownTimer, nextTimerUpdate);
+          cancelTimeout = function () {
+            $timeout.cancel(timeoutId);
+            cancelTimeout = angular.noop;
+          };
+          return cancelTimeout;
+        };
+
+        $scope.$watch('time', function (newValue) {
+          if(newValue) {
+            $scope.max = newValue - Date.now();
+            updateCountDownTimer();
+          }
+        });
+      }
+    };
+  })
   .directive('chesshiveTimeToNextDigest', function ($timeout, chessHiveGameSocket) {
     return {
       scope: {},
       template: '<div>' +
-      ' <div data-ng-show="gameOver">Game over.</div>' +
       ' <div data-ng-show="!gameOver">' +
-      '  {{timeToNextDigest / 1000 | number:precision}}s' +
-      '  <div class="progress" style="height: 5px;">' +
-      '   <div class="progress-bar progress-bar-striped active" ' +
-      '     role="progressbar" aria-valuenow="{{timeToNextDigest}}" aria-valuemin="0" aria-valuemax="{{digestTimeout}}" ' +
-      '     style="width: {{ percentage | number:0 }}%">' +
-      '    <span class="sr-only">{{ percentage | number:0 }}% Complete</span>' +
-      '   </div>' +
-      '  </div>' +
-      ' </div>' +
+      ' <div ' +
+      '  data-chesshive-countdown ' +
+      '  data-time="data.nextDigestTime"' +
+      '  data-show-progress-bar="true"' +
+      ' ></div>' +
       '</div>',
       controller: function ($scope) {
         $scope.fullSecond = 0;
@@ -141,6 +216,7 @@ angular.module('chesshiveApp')
         chessHiveGameSocket.forward('new-top-rated-game-move', $scope);
         $scope.$on('socket:new-top-rated-game-move', function (event, data) {
           $timeout.cancel(countDownTimerTimeout);
+          $scope.data = data;
 
           $scope.gameOver = data.gameOver;
           if (!$scope.gameOver) {
@@ -168,7 +244,7 @@ angular.module('chesshiveApp')
                 $scope.precision = 1;
               }
 
-              var offset = ($scope.timeToNextDigestInMs - ($scope.fullSecond * 1000));
+              var offset = (timeToNextDigestInMs - ($scope.fullSecond * 1000));
               nextTimerUpdate = nextTimerUpdate - offset;
 
               countDownTimerTimeout = $timeout(updateCountDownTimer, nextTimerUpdate);

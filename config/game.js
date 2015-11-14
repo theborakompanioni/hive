@@ -8,7 +8,8 @@ var noop = function () {
 };
 
 module.exports = function () {
-    var DEFAULT_DIGEST_TIMEOUT = 30.5 * 1000;
+    var DEFAULT_DIGEST_TIMEOUT_PLAYER = 30.5 * 1000;
+    var DEFAULT_DIGEST_TIMEOUT_NOPLAYER = 5.5 * 1000;
     var HotSeatChessGame = function (room) {
         // TODO: implement a queue chessgame.
         // winner stays, loser gets disconnected
@@ -50,7 +51,7 @@ module.exports = function () {
             };
             this.lastMoves = [];
             this.digestCount = 0;
-            this.digestTimeout = DEFAULT_DIGEST_TIMEOUT;
+            this.digestTimeout = DEFAULT_DIGEST_TIMEOUT_PLAYER;
             this.nextDigestTime = -1;
             this.latestDigestTime = -1;
             this.cancelDigestTimeout = noop;
@@ -332,7 +333,7 @@ module.exports = function () {
             var nextDigest = this.digestTimeout;
             var oppositeColorTeamSize = this.playerCount[currentColorToMove === 'white' ? 'black' : 'white'];
             if (oppositeColorTeamSize <= 0) {
-                nextDigest = Math.min(DEFAULT_DIGEST_TIMEOUT, 3000);
+                nextDigest = Math.min(DEFAULT_DIGEST_TIMEOUT_PLAYER, DEFAULT_DIGEST_TIMEOUT_NOPLAYER);
             }
 
             this.nextDigestTime = Date.now() + nextDigest;
