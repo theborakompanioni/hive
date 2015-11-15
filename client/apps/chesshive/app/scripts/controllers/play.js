@@ -365,13 +365,11 @@ angular.module('chesshiveApp')
 
       $scope.model.isInTurn = isInTurn();
 
-      $scope.model.gameOver = data.gameOver;
-
       $scope.board.orientation(color);
     });
 
     var isInTurn = function () {
-      return $scope.model.joined && game.turn() === $scope.model.color.charAt(0);
+      return !$scope.model.gameOver && $scope.model.joined && game.turn() === $scope.model.color.charAt(0);
     };
     /*
      * A new move has been chosen by the server => update the UI with the move
@@ -379,6 +377,8 @@ angular.module('chesshiveApp')
     chessHiveGameSocket.forward('new-top-rated-game-move', $scope);
     $scope.$on('socket:new-top-rated-game-move', function (event, data) {
       console.log('[debug] socket:new-top-rated-move: ' + JSON.stringify(data));
+
+      $scope.model.gameOver = data.gameOver;
 
       game.loadPgn(data.pgn);
 
