@@ -181,25 +181,34 @@ module.exports = function () {
                 if (!playerIsInRoom) {
                     return;
                 }
+                var turn = data.turn;
+                var move = data.move;
 
-                var providedTurn = data.turn !== 'white' && data.turn !== 'black' ? undefined : data.turn;
+                var providedTurn = turn !== 'white' && turn !== 'black' ? undefined : turn;
                 var playerHasColorHeProvided = playerInRoom.side === providedTurn;
                 var playerIsInTurn = playerInRoom.side.charAt(0) === game.instance.turn();
                 if (!playerHasColorHeProvided || !playerIsInTurn) {
                     return;
                 }
 
-                if (!isValidMove(game, data)) {
-                    logger.warn('player %s provided illegal move in game %s', player.name, game.name);
-                    return;
+                var isVoteForResignation = data.resign === true;
+                if (!isVoteForResignation) {
+                    if (!isValidMove(game, move)) {
+                        logger.warn('player %s provided illegal move in game %s', player.name, game.name);
+                        return;
+                    }
+
+                    var acceptedSuggestedMove = game.suggestMoveForColor(providedTurn, move);
+                    logger.debug('player %s suggests valid move %s in game %s', player.name, acceptedSuggestedMove.san, game.name);
+
+                    //playerInRoom.socket.emit('new-move', acceptedSuggestedMove);
+                    // TODO: do not send moves to opponents
+                    //playerInRoom.socket.broadcast.to(game.room).emit('new-move', acceptedSuggestedMove);
+                } else {
+                    // TODO: add logic for resignation-vote
+                    //game.suggestMoveForColor(providedTurn, 'resign');
+                    logger.debug('player %s suggests resignation in game %s', player.name, game.name);
                 }
-
-                var acceptedSuggestedMove = game.suggestMoveForColor(providedTurn, data);
-                logger.debug('player %s suggests valid move %s in game %s', player.name, acceptedSuggestedMove.san, game.name);
-
-                playerInRoom.socket.emit('new-move', acceptedSuggestedMove);
-                // TODO: do not send moves to opponents
-                playerInRoom.socket.broadcast.to(game.room).emit('new-move', acceptedSuggestedMove);
 
                 var suggestedMovesMsg = {
                     team: game.suggestedMoves[playerInRoom.side],
@@ -209,9 +218,10 @@ module.exports = function () {
                 playerInRoom.socket.emit('suggested-moves', suggestedMovesMsg);
                 playerInRoom.socket.broadcast.to(game.room).emit('suggested-moves', suggestedMovesMsg);
 
+                var moveSelector = isVoteForResignation ? 'resign' : move.san;
                 var teamSize = game.playerCount[playerInRoom.side];
                 var suggestedMovesForCurrentTeam = game.suggestedMoves[playerInRoom.side];
-                var countOfSuggestedMove = suggestedMovesForCurrentTeam[acceptedSuggestedMove.san];
+                var countOfSuggestedMove = suggestedMovesForCurrentTeam[moveSelector];
                 var moreThanHalfHaveVotedForCurrentMove = countOfSuggestedMove > Math.floor(teamSize / 2);
 
                 var countOfVotesForTeam = _.sum(suggestedMovesForCurrentTeam);
@@ -258,29 +268,36 @@ module.exports = function () {
         };
 
         this.suggestMoveForColor = function (color, data) {
-            /*
-             data := {
-             token: token,
-             source: source,
-             target: target,
-             piece: piece,
-             turn: game.turn() === 'b' ? 'black' : 'white',
-             newPosition: ChessBoard.objToFen(newPos),
-             oldPosition: ChessBoard.objToFen(oldPos)
-             }
-             */
-            if (!isValidMove(this, data)) {
-                return;
-            }
-            var validMove = asValidMoveOrNull(this, data);
+            if (data === 'resign') {
+                //if (!this.suggestedMoves[color]['resign']) {
+                //    this.suggestedMoves[color]['resign'] = 0;
+                //}
+                //this.suggestedMoves[color]['resign']++;
+            } else {
+                /*
+                 data := {
+                 token: token,
+                 source: source,
+                 target: target,
+                 piece: piece,
+                 turn: game.turn() === 'b' ? 'black' : 'white',
+                 newPosition: ChessBoard.objToFen(newPos),
+                 oldPosition: ChessBoard.objToFen(oldPos)
+                 }
+                 */
+                if (!isValidMove(this, data)) {
+                    return;
+                }
+                var validMove = asValidMoveOrNull(this, data);
 
-            var moveKey = validMove.san;
-            if (!this.suggestedMoves[color][moveKey]) {
-                this.suggestedMoves[color][moveKey] = 0;
-            }
-            this.suggestedMoves[color][moveKey]++;
+                var moveKey = validMove.san;
+                if (!this.suggestedMoves[color][moveKey]) {
+                    this.suggestedMoves[color][moveKey] = 0;
+                }
+                this.suggestedMoves[color][moveKey]++;
 
-            return validMove;
+                return validMove;
+            }
         };
 
         this.makeMove = function (move) {

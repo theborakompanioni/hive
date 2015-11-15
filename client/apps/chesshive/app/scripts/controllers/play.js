@@ -93,12 +93,6 @@ angular.module('chesshiveApp')
         $scope.movesHaveBeenSuggested = false;
         $scope.suggestedMoves = null;
 
-        chessHiveGameSocket.forward('new-move', $scope);
-        $scope.$on('socket:new-move', function (event, data) {
-          var latestMove = data;
-          console.log('a user suggested a move for ' + latestMove.color + ':' + JSON.stringify(latestMove));
-        });
-
         chessHiveGameSocket.forward('suggested-moves', $scope);
         $scope.$on('socket:suggested-moves', function (event, data) {
           if (data.team) {
@@ -311,28 +305,21 @@ angular.module('chesshiveApp')
 
       var vote = {
         token: token,
-        san: move.san,
-        source: source,
-        target: target,
-        piece: piece,
         turn: color,
-        newPosition: ChessBoard.objToFen(newPos),
-        oldPosition: ChessBoard.objToFen(oldPos)
+        resign: false,
+        move: {
+          san: move.san,
+          source: source,
+          target: target,
+          piece: piece,
+          newPosition: ChessBoard.objToFen(newPos),
+          oldPosition: ChessBoard.objToFen(oldPos)
+        }
       };
       chessHiveGameSocket.emit('new-move', vote);
 
-      $scope.model.vote = vote;
       $scope.model.voted = true;
-
-      $scope.model.vote = {
-        token: token,
-        source: source,
-        target: target,
-        piece: piece,
-        turn: color,
-        newPosition: ChessBoard.objToFen(newPos),
-        oldPosition: ChessBoard.objToFen(oldPos)
-      };
+      $scope.model.vote = vote.move;
 
       Messenger().post({
         message: 'Your move has been suggested: ' + source + ' -> ' + target,
@@ -361,7 +348,7 @@ angular.module('chesshiveApp')
       $scope.model.joined = true;
       $scope.model.orientation = color;
       $scope.model.color = color;
-      $scope.model.pieceImageSrc = '/images/chesspieces/wikipedia/' + color.charAt(0) + 'K.png';
+      $scope.model.pieceImageSrc = 'images/chesspieces/wikipedia/' + color.charAt(0) + 'K.png';
 
       $scope.model.isInTurn = isInTurn();
 
@@ -405,10 +392,16 @@ angular.module('chesshiveApp')
     });
 
     $scope.voteForResignation = function () {
-      if ($scope.model.joined === true) {
-        chessHiveGameSocket.emit('new-vote-resign', {
-          token: token
-        });
+      if ($scope.model.joined === true && !$scope.model.voted) {
+        var color = game.turn() === 'b' ? 'black' : 'white';
+        var vote = {
+          token: token,
+          turn: color,
+          resign: true,
+          move: null
+        };
+        chessHiveGameSocket.emit('new-move', vote);
+
         $scope.model.voted = true;
         $scope.model.vote = 'resign';
       }
