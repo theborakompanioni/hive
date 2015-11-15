@@ -28,7 +28,17 @@ module.exports = function (options) {
 
         this.createGame = function () {
             logger.debug('create new game in room %s', this.name);
-            this.game = new HiveChessGame(this.name);
+
+            if('the-master-board' === this.name) {
+                this.game = new HiveChessGame(this.name, {
+                    autoRestart: true,
+                    restartTimeout: 10000,
+                    maxRounds: 600,
+                    destroyWhenLastPlayerLeft: false
+                });
+            } else {
+                this.game = new HiveChessGame(this.name);
+            }
             return this.game;
         };
 

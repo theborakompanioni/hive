@@ -26,7 +26,8 @@ module.exports = function () {
         this.options = _.defaults(_.extend({}, options), {
             autoRestart: true,
             restartTimeout: 15000,
-            maxRounds: 400
+            maxRounds: 400,
+            destroyWhenLastPlayerLeft: true
         });
         this.room = room;
         this.name = util.randomString(8);
@@ -75,8 +76,16 @@ module.exports = function () {
                 this.playerCount[removedPlayer.side]--;
             }, this);
 
-            player.socket.emit('player-stats', this.playerCount);
             player.socket.broadcast.to(this.room).emit('player-stats', this.playerCount);
+
+            var gameHasPlayers = this.players.length > 0;
+            if (!gameHasPlayers) {
+                if (this.options.destroyWhenLastPlayerLeft) {
+                    logger.info('game %s stopped because last player left', this.name);
+                    this.stop();
+                    // TODO: remove game from room
+                }
+            }
         };
 
         this.createTopRatedMoveMessage = function (moveOrUndefined) {
@@ -109,7 +118,11 @@ module.exports = function () {
 
             var side = chooseColorForNewPlayer(this, player);
 
-            this.status = 'ready';
+            var oppositeColor = side === 'white' ? 'black' : 'white';
+            if (this.playerCount[oppositeColor] <= 0) {
+                this.restart();
+            }
+
             this.playerCount[side]++;
             var gamePlayer = _.extend({}, player, {
                 side: side
@@ -318,8 +331,6 @@ module.exports = function () {
         };
 
         this.digest = function () {
-            var self = this;
-
             logger.debug('game %s digest loop %d starts', this.name, this.digestCount);
             this.cancelDigestTimeout();
 
@@ -362,7 +373,7 @@ module.exports = function () {
                         game.name, nextDigestCount, Math.floor(timeout / 1000));
 
                     var cancelTimeoutId = setTimeout(function () {
-                        self.cancelDigestTimeout = noop;
+                        game.cancelDigestTimeout = noop;
                         game.digest();
                     }, timeout);
 
@@ -410,9 +421,9 @@ module.exports = function () {
             var whites = game.playerCount.white;
             var blacks = game.playerCount.black;
 
-            /*if (whites === 0) {
-             return 'white';
-             }*/
+            if (whites === 0) {
+                return 'white';
+            }
             if (whites < blacks) {
                 return 'white';
             }
