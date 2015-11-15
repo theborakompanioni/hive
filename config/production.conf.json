@@ -20,6 +20,11 @@
       "name": "chesshive",
       "io": {
         "host": "http://chess.openmrc.com:3000"
+      },
+      "google":{
+        "analytics": {
+          "tracker": "UA-48540954-7"
+        }
       }
     }
   }

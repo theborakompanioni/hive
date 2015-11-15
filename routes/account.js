@@ -1,6 +1,6 @@
 var express = require('express');
 var mongoose = require('mongoose');
-var util = require('../config/util.js');
+var util = require('../setup/util.js');
 var router = express.Router();
 var moment = require('moment');
 

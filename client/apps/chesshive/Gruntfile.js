@@ -430,6 +430,11 @@ module.exports = function (grunt) {
               return JSON.stringify(serverConf.get('ui:app'));
             }
           }, {
+            match: '<!--%app:google:analytics:tracker%-->',
+            replacement: function () {
+              return serverConf.get('ui:app:google:analytics:tracker');
+            }
+          }, {
             match: /http:\/\/localhost:3000\/socket.io\/socket.io.js/,
             replacement: function () {
               return serverConf.get('ui:app').io.host + '/socket.io/socket.io.js';

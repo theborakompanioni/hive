@@ -1,7 +1,7 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var passport = require('passport');
-var util = require('../config/util.js');
+var util = require('../setup/util.js');
 var User = mongoose.model('User');
 
 var router = express.Router();

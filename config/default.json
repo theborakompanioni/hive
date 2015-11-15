@@ -1,9 +1,0 @@
-{
-  "chesshive": {
-    "db": "mongodb://localhost/test",
-    "es": {
-      "host": "localhost",
-      "port": "9200"
-    }
-  }
-}

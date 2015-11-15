@@ -1,7 +1,7 @@
-var mongoose = require('mongoose')
-    , Schema = mongoose.Schema;
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
 
-var GameSchema = mongoose.Schema({
+var GameSchema = Schema({
     user: { type: Schema.ObjectId, ref: 'User' },
     white: String,
     black: String,

@@ -10,18 +10,16 @@ var passport = require('passport');
 var flash = require('connect-flash');
 var compression = require('compression');
 
-var logger = require('./config/logging')().standard();
-
-var env = process.env.NODE_ENV || 'default';
-var DEFAULT_PORT = 3000;
-
 var conf = require('./config/app')().get('app');
+var logger = require('./setup/logging')().standard();
+
+var DEFAULT_PORT = 3000;
 
 var app = express();
 
 // configure database
-require('./config/morgan')(app, conf.morgan);
-require('./config/database')(app, conf.mongo);
+require('./setup/morgan')(app, conf.morgan);
+require('./setup/database')(app, conf.mongo);
 
 // bootstrap data models
 fs.readdirSync(__dirname + '/models').forEach(function (file) {
@@ -41,9 +39,7 @@ app.use(flash());
 //app.use(session({secret: 'S3CRE7-S3SSI0N', saveUninitialized: true, resave: true}));
 app.use(express.static(path.join(__dirname, 'client/apps/chesshive/dist')));
 
-require('./config/passport')(app, passport);
-app.use(passport.initialize());
-app.use(passport.session());
+require('./setup/passport')(app, passport);
 
 // configure routes
 var routes = require('./routes/index');
@@ -63,7 +59,7 @@ app.use('/api', api);
 app.use('/search', search);
 
 // configure error handlers
-require('./config/errorHandlers.js')(app);
+require('./setup/errorHandlers.js')(app);
 
 var appName = conf.name || 'unnamed';
 
@@ -72,6 +68,6 @@ var server = require('http').createServer(app).listen(app.get('port'), function 
     logger.info('Application %s started on port %d', appName, server.address().port);
 });
 
-require('./config/socket.js')(server);
+require('./setup/socket.js')(server);
 
 module.exports = app;
