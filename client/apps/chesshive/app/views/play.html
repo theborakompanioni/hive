@@ -1,56 +1,18 @@
-<div class="row" data-ng-controller="HiveChessGameCtrl">
-  <div class="col-xs-12">
-    <div chesshive-game-over-message></div>
-  </div>
-  <div class="col-sm-4 col-md-5">
-    <div class="panel" data-ng-class="{
-      'panel-info': !model.voted && model.isInTurn,
-      'panel-success': model.voted && model.isInTurn,
-      'panel-default': !model.isInTurn
-    }">
-      <div class="panel-heading">
-        <p style="margin-top:13px;">
-          <img data-ng-src="{{model.pieceImageSrc}}" style="height:32px; margin-top:-7px;"/>
-          You are in team <strong>{{model.orientation}}</strong>
-        </p>
-      </div>
-      <div class="panel-body">
-
-        <p id="player-stats">
-          <span data-chesshive-player-stats></span>
-        </p>
-
-        <p id="time-to-next-digest" style="font-size: 4em;">
-          <span data-chesshive-time-to-next-digest></span>
-        </p>
-
-        <p id="vote-stats" data-ng-show="model.isInTurn">
-          <span data-chesshive-suggested-moves data-is-in-turn="model.isInTurn"></span>
-        </p>
-
-        <p data-ng-show="!model.isInTurn">
-          Wait till your opponents agreed on a move.
-        </p>
-      </div>
-      <div class="panel-footer">
-        <button id="resignButton" type="button"
-                class="btn btn-danger center-block"
-                data-ng-click="voteForResignation()"
-                data-ng-show="model.isInTurn"
-                data-ng-disabled="model.voted">Vote for Resignation
-        </button>
-      </div>
+<div class="" data-ng-controller="HiveChessGameCtrl">
+  <div class="row">
+    <div class="col-xs-12">
+      <div chesshive-game-over-message></div>
     </div>
   </div>
-
-  <div class="col-sm-8 col-md-7">
-    <div id="board-panel" class="panel" data-ng-class="{
-      'panel-info': !model.voted && model.isInTurn,
-      'panel-success': model.voted && model.isInTurn,
-      'panel-default': !model.isInTurn
+  <div class="row">
+    <div class="col-xs-12 col-sm-8 col-md-7">
+      <div id="board-panel" class="panel" data-ng-class="{
+      'panel-info': !model.gameOver && !model.voted && model.isInTurn,
+      'panel-success': !model.gameOver && model.voted && model.isInTurn,
+      'panel-default': model.gameOver || !model.isInTurn
     }">
-      <div class="panel-heading">
-        <p style="margin-top:13px;">
+        <div class="panel-heading">
+          <p style="margin-top:13px;">
           <span data-ng-show="model.turn === 'w'">
           <img src="/images/chesspieces/wikipedia/wK.png" style="height:32px; margin-top:-7px;"/>
             <strong>white</strong> to move
@@ -62,59 +24,109 @@
 
           <span class="label label-primary pull-right"
                 data-ng-show="model.isInTurn && !model.voted">make your move</span>
-          <span class="label label-success pull-right" data-ng-show="model.isInTurn && model.voted">vote accepted</span>
-        </p>
-      </div>
-      <div class="panel-body">
-        <nywton-chessboard
-          data-board="board"
-          orientation="'{{model.orientation}}'"
-          on-drag-start-cb="onDragStart"
-          on-drop="onDrop"
-          on-snap-end="onSnapEnd"
-          data-nywton-chessboard-autoresize
-          ></nywton-chessboard>
-        <div class="caption">
-
+            <span class="label label-success pull-right"
+                  data-ng-show="model.isInTurn && model.voted">vote accepted</span>
+          </p>
+        </div>
+        <div class="panel-body">
+          <div class="col-xs-offset-2 col-xs-8
+                      col-sm-offset-0 col-sm-12">
+            <nywton-chessboard
+              data-board="board"
+              orientation="'{{model.orientation}}'"
+              on-drag-start-cb="onDragStart"
+              on-drop="onDrop"
+              on-snap-end="onSnapEnd"
+              data-nywton-chessboard-autoresize
+              ></nywton-chessboard>
+            <div class="caption">
+            </div>
+          </div>
+        </div>
+        <div class="panel-footer">
         </div>
       </div>
-      <div class="panel-footer">
+    </div>
+
+
+    <div class="col-xs-12 col-sm-4 col-md-5">
+      <div class="panel" data-ng-class="{
+      'panel-info': !model.gameOver && !model.voted && model.isInTurn,
+      'panel-success': !model.gameOver && model.voted && model.isInTurn,
+      'panel-default': model.gameOver || !model.isInTurn
+    }">
+        <div class="panel-heading">
+          <p style="margin-top:13px;">
+            <img data-ng-src="{{model.pieceImageSrc}}" style="height:32px; margin-top:-7px;"/>
+            You are in team <strong>{{model.orientation}}</strong>
+          </p>
+        </div>
+        <div class="panel-body">
+
+          <p id="player-stats">
+            <span data-chesshive-player-stats></span>
+          </p>
+
+          <p id="time-to-next-digest" style="font-size: 4em;">
+            <span data-chesshive-time-to-next-digest></span>
+          </p>
+
+          <p id="vote-stats" data-ng-show="model.isInTurn">
+            <span data-chesshive-suggested-moves data-is-in-turn="model.isInTurn"></span>
+          </p>
+
+          <p data-ng-show="!model.isInTurn">
+            Wait till your opponents agreed on a move.
+          </p>
+        </div>
+        <div class="panel-footer">
+          <button id="resignButton" type="button"
+                  class="btn btn-danger center-block"
+                  data-ng-click="voteForResignation()"
+                  data-ng-show="model.isInTurn"
+                  data-ng-disabled="model.voted">Vote for Resignation
+          </button>
+        </div>
       </div>
     </div>
   </div>
+  <div class="row">
 
-
-  <div class="col-xs-12 col-md-12" data-ng-show="model.isInTurn">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h4 class="panel-title">Your move</h4>
-      </div>
-      <div class="panel-body">
-        <div data-ng-show="model.voted">
-          {{ model.vote | json }}
+    <!-- div class="col-xs-12 col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title" data-ng-show="model.isInTurn">Your move</h4>
+          <h4 class="panel-title" data-ng-show="!model.isInTurn">Opponents move</h4>
         </div>
-        <div data-ng-hide="model.voted">
-          Make your move!
+        <div class="panel-body">
+          <div data-ng-show="model.isInTurn">
+            <div data-ng-show="model.voted">
+              {{ model.vote | json }}
+            </div>
+            <div data-ng-hide="model.voted">
+              Make your move!
+            </div>
+          </div>
+        </div>
+        <div class="panel-footer">
         </div>
       </div>
-      <div class="panel-footer">
-      </div>
-    </div>
-  </div>
+    </div-->
 
 
-  <div class="col-xs-12 col-md-12">
-    <div class="panel panel-default">
-      <div class="panel-heading">
-        <h4 class="panel-title">Moves Made</h4>
-      </div>
-      <div class="panel-body">
+    <div class="col-xs-12 col-md-12">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4 class="panel-title">Moves Made</h4>
+        </div>
+        <div class="panel-body">
         <textarea rows="6" id="pgn" class="form-control" readonly="readonly" data-ng-model="model.gameHistoryString">
         </textarea>
-      </div>
-      <div class="panel-footer">
+        </div>
+        <div class="panel-footer">
+        </div>
       </div>
     </div>
-  </div>
 
+  </div>
 </div>

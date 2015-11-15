@@ -268,6 +268,7 @@ angular.module('chesshiveApp')
       voted: false,
       vote: null,
       color: null,
+      gameOver: false,
       orientation: 'white',
       gameHistoryString: '',
       pieceImageSrc: null
@@ -364,6 +365,8 @@ angular.module('chesshiveApp')
 
       $scope.model.isInTurn = isInTurn();
 
+      $scope.model.gameOver = data.gameOver;
+
       $scope.board.orientation(color);
     });
 
@@ -378,6 +381,7 @@ angular.module('chesshiveApp')
       console.log('[debug] socket:new-top-rated-move: ' + JSON.stringify(data));
 
       game.loadPgn(data.pgn);
+
       $scope.board.position(data.fen);
 
       $scope.model.gameHistoryString = game.pgn();
