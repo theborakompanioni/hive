@@ -1,8 +1,8 @@
 <!doctype html>
-<html>
+<html data-ng-app="chesshiveApp">
 <head>
   <meta charset="utf-8">
-  <title></title>
+  <title>Application</title>
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width">
   <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="styles/main.css">
   <!-- endbuild -->
 </head>
-<body ng-app="chesshiveApp">
+<body >
 <!--[if lte IE 8]>
 <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade
   your browser</a> to improve your experience.</p>
@@ -52,7 +52,7 @@
 
         <ul class="nav navbar-nav">
           <li data-ng-class="{ 'active' : '' }"><a href="#/">Home</a></li>
-          <li><a ng-href="#/play">Play</a></li>
+          <li><a data-ng-href="#/play">Play</a></li>
         </ul>
       </div>
     </div>
@@ -60,7 +60,7 @@
 </div>
 
 <div class="container">
-  <div ng-view=""></div>
+  <div data-ng-view=""></div>
 </div>
 
 <div class="footer">
@@ -68,7 +68,7 @@
     <ul class="list-inline">
       <li><span class="glyphicon glyphicon-heart"></span> from tbk</li>
       <li>|</li>
-      <li><a ng-href="#/about">about</a></li>
+      <li><a data-ng-href="#/about">about</a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +80,7 @@
     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', '"<!--%google:analytics:tracker%-->"', 'auto');
+  ga('create', '<!--%app:google:analytics:tracker%-->', 'auto');
   ga('send', 'pageview');
 </script>
 
@@ -112,7 +112,6 @@
 <!-- endbower -->
 <!-- endbuild -->
 
-<!--script type="text/javascript" src="http://chess.openmrc.com/socket.io/socket.io.js"></script-->
 <script type="text/javascript" src="http://localhost:3000/socket.io/socket.io.js"></script>
 
 <!-- build:js({.tmp,app}) scripts/scripts.js -->
