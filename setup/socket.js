@@ -1,6 +1,6 @@
 var _ = require('lodash');
 var chess = require('chess.js');
-var rooms = require('./rooms')({});
+var rooms = require('./../app/rooms')({});
 var logger = require('./logging')({}).standard();
 
 module.exports = function (server) {

@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var util = require('../setup/util.js');
+var util = require('../app/util.js');
 
 var UserSchema = mongoose.Schema({
     name: String,

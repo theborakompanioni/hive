@@ -1,8 +1,8 @@
 var _ = require('lodash');
 var chess = require('chess.js');
 
-var util = require('./util');
-var logger = require('./logging')({}).standard();
+var util = require('./../util');
+var logger = require('./../../setup/logging')({}).standard();
 
 var noop = function () {
 };
@@ -10,19 +10,8 @@ var noop = function () {
 module.exports = function () {
     var DEFAULT_DIGEST_TIMEOUT_PLAYER = 30.5 * 1000;
     var DEFAULT_DIGEST_TIMEOUT_NOPLAYER = 5.5 * 1000;
-    var HotSeatChessGame = function (room) {
-        // TODO: implement a queue chessgame.
-        // winner stays, loser gets disconnected
-        // next in queue is next opponent
 
-        // but everybody in the room can make suggests!
-        // regular chess times -> single hard constraints
-
-        // if one fails to make a move within 30 sec
-        // -> disconnected
-    };
-
-    var HiveChessGame = function (room, options) {
+    var MultiplayerChessHiveGame = function (room, options) {
         this.options = _.defaults(_.extend({}, options), {
             autoRestart: true,
             restartTimeout: 15000,
@@ -468,8 +457,8 @@ module.exports = function () {
     };
 
     return {
-        HiveChessGame: function () {
-            return HiveChessGame;
+        create: function (room, config) {
+            return new MultiplayerChessHiveGame(room, config || {});
         }
-    }
+    };
 };

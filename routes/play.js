@@ -1,5 +1,5 @@
 var express = require('express');
-var util = require('../setup/util.js');
+var util = require('../app/util.js');
 var router = express.Router();
 
 router.get('/', function(req, res) {

@@ -1,8 +1,8 @@
 var _ = require('lodash');
 
 var util = require('./util');
-var HiveChessGame = require('./game')().HiveChessGame();
-var logger = require('./logging')({}).standard();
+var GameFactory = require('./games')();
+var logger = require('./../setup/logging')({}).standard();
 
 module.exports = function (options) {
 
@@ -29,15 +29,15 @@ module.exports = function (options) {
         this.createGame = function () {
             logger.debug('create new game in room %s', this.name);
 
-            if('the-master-board' === this.name) {
-                this.game = new HiveChessGame(this.name, {
+            if ('the-master-board' === this.name) {
+                this.game = GameFactory.createMultiplayerHiveChessGame(this.name, {
                     autoRestart: true,
                     restartTimeout: 10000,
                     maxRounds: 600,
                     destroyWhenLastPlayerLeft: false
                 });
             } else {
-                this.game = new HiveChessGame(this.name);
+                this.game = GameFactory.createMultiplayerHiveChessGame(this.name);
             }
             return this.game;
         };
@@ -137,7 +137,7 @@ module.exports = function (options) {
             return this.rooms[name];
         };
 
-        this.removePlayer = function(roomName, player) {
+        this.removePlayer = function (roomName, player) {
             var room = this.getRoomOrNull(roomName);
             if (room !== null) {
                 room.removePlayer(player);
@@ -170,7 +170,7 @@ module.exports = function (options) {
                 var roomName = data.token;
                 rooms.removePlayer(roomName, player);
             });
-        }
+        };
     };
 
     return new Rooms(options);
