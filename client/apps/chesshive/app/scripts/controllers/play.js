@@ -294,7 +294,7 @@ angular.module('chesshiveApp')
       var move = game.move({
         from: source,
         to: target,
-        promotion: 'q' // NOTE: always promote to a queen for example simplicity
+        promotion: 'q' // NOTE: always promote to a queen for simplicity
       });
 
       // illegal move

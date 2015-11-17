@@ -1,6 +1,8 @@
-var Q = require("q");
+var Q = require('q');
+var _ = require('lodash');
+var stockfish = require('stockfish');
 
-function getMovesForStockfish(game) {
+var getMovesForStockfish = function (game) {
     var moves = '';
     var history = game.history({verbose: true});
 
@@ -10,10 +12,30 @@ function getMovesForStockfish(game) {
     }
 
     return moves;
-}
+};
+
+
+var createStockfishPositionCommand = function (game) {
+    var moves = getMovesForStockfish(game);
+    return 'position startpos moves' + moves;
+};
+
+var createStockfishGoCommand = function (settings) {
+    if (settings) {
+        if (settings.depth) {
+            return 'go depth ' + settings.depth;
+        } else if (settings.nodes) {
+            return 'go nodes ' + settings.nodes;
+        } else if (settings.wtime && settings.winc && settings.btime && settings.binc) {
+            return 'go wtime ' + settings.wtime + ' winc ' + settings.winc + ' btime ' + settings.btime + ' binc ' + settings.binc;
+        }
+    }
+
+    return 'go';
+};
+
 
 module.exports = function () {
-    var stockfish = require('stockfish');
     var engine = stockfish();
     var bestMoveReceived = false;
     var currentBestMove = null;
@@ -45,24 +67,25 @@ module.exports = function () {
     };
 
     return {
-        waitForBestMove: function () {
-            /*if (deferred === null) {
-                var d = Q.defer();
-                d.reject();
-                return d.promise;
+        getForBestMoveOrNull: function () {
+            if (!bestMoveReceived) {
+                return null;
             }
 
-            return deferred.promise;*/
             return currentBestMove;
         },
-        updateGame: function (game) {
+        startSearchForBestMove: function (game, options) {
+            var goCommandOptions = _.defaults(_.extend({}, options), {
+               depth: 5
+            });
             bestMoveReceived = false;
+            currentBestMove = null;
             //deferred = Q.defer(); // create promise which will resolve if move IA has best move
 
-            var moves = getMovesForStockfish(game);
-
-            engine.postMessage('position startpos moves' + moves);
-            engine.postMessage('go depth 13');
+            var positionCommand = createStockfishPositionCommand(game);
+            engine.postMessage(positionCommand);
+            var goCommand = createStockfishGoCommand(goCommandOptions);
+            engine.postMessage(goCommand);
         }
     };
 };

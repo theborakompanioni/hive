@@ -59,7 +59,7 @@ app.use('/api', api);
 app.use('/search', search);
 
 // configure error handlers
-require('./setup/errorHandlers.js')(app);
+require('./setup/errorHandlers')(app);
 
 var appName = conf.name || 'unnamed';
 
@@ -68,6 +68,8 @@ var server = require('http').createServer(app).listen(app.get('port'), function 
     logger.info('Application %s started on port %d', appName, server.address().port);
 });
 
-require('./setup/socket.js')(server);
+require('./setup/socket')(server);
+
+require('./setup/bots')();
 
 module.exports = app;

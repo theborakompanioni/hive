@@ -9,57 +9,27 @@ var noop = function () {
 
 module.exports = function () {
     /*function getMovesForStockfish(game) {
-        var moves = '';
-        var history = game.history({verbose: true});
+     var moves = '';
+     var history = game.history({verbose: true});
 
-        for(var i = 0; i < history.length; ++i) {
-            var move = history[i];
-            moves += ' ' + move.from + move.to + (move.promotion ? move.promotion : '');
-        }
+     for(var i = 0; i < history.length; ++i) {
+     var move = history[i];
+     moves += ' ' + move.from + move.to + (move.promotion ? move.promotion : '');
+     }
 
-        return moves;
-    }*/
+     return moves;
+     }*/
 
-    var DEFAULT_DIGEST_TIMEOUT_PLAYER = 3000; //30.5 * 1000;
+    var DEFAULT_DIGEST_TIMEOUT_PLAYER = 30 * 1000; //30.5 * 1000;
     var DEFAULT_DIGEST_TIMEOUT_NOPLAYER = 3000; //5.5 * 1000;
 
     var MultiplayerChessHiveGame = function (room, options) {
-
-        /*var stockfish = require("stockfish");
-        this.engine = stockfish();
-
-        this.engine.onmessage = function(event) {
-            //NOTE: Web Workers wrap the response in an object.
-            console.log('stockfish:');
-            console.log(event.data ? event.data : event);
-
-            var line;
-
-            if (event && typeof event === "object") {
-                line = event.data;
-            } else {
-                line = event;
-            }
-
-            var match = line.match(/^bestmove ([a-h][1-8])([a-h][1-8])([qrbk])?/);
-            /// Did the AI move?
-            if(match) {
-                console.log('STOCKFISH SAYS BEST MOVE IS from %s to %s promotion',
-                    match[1], match[2], match[3]
-                );
-            }
-        };
-
-
-        this.engine.postMessage("go depth 15");
-*/
         this.options = _.defaults(_.extend({}, options), {
             autoRestart: true,
             restartTimeout: 15000,
             maxRounds: 400,
             destroyWhenLastPlayerLeft: true
         });
-        this.engine = require('./../engine')();
         this.room = room;
         this.name = util.randomString(8);
         this.players = [];
@@ -179,10 +149,11 @@ module.exports = function () {
                 side: side
             });
 
-            player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
-
             player.socket.emit('player-stats', this.playerCount);
             player.socket.broadcast.to(this.room).emit('player-stats', this.playerCount);
+
+            player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
+
 
             var suggestedMovesMsg = {
                 team: this.suggestedMoves[side],
@@ -225,7 +196,7 @@ module.exports = function () {
                 var isVoteForResignation = data.resign === true;
                 if (!isVoteForResignation) {
                     if (!isValidMove(game, move)) {
-                        logger.warn('player %s provided illegal move in game %s', player.name, game.name);
+                        logger.warn('player %s provided illegal move in game %s: ', player.name, game.name, move);
                         return;
                     }
 
@@ -288,18 +259,18 @@ module.exports = function () {
             return move;
         };
 
+        this.getRandomMove = function () {
+            var move = this.possibleMoves[Math.floor(Math.random() * this.possibleMoves.length)];
+            move.promotion = 'q'; // NOTE: always promote to a queen for example simplicity
+            move.__debug_random = true;
+            return move;
+        };
+
         this.getMoveForColorOrRandom = function (color) {
             var move = this.getMoveForColorOrNull(color);
             if (move === null) {
-                /*
-                move = this.possibleMoves[Math.floor(Math.random() * this.possibleMoves.length)];
-                move.promotion = 'q'; // NOTE: always promote to a queen for example simplicity
-                move.__debug_random = true;
-                */
-                move = this.engine.waitForBestMove();
-
+                move = this.getRandomMove();
             }
-            logger.warn(move);
             return move;
         };
 
@@ -345,11 +316,6 @@ module.exports = function () {
             this.possibleMoves = this.instance.moves({verbose: true});
 
             this.colorToMove = this.instance.turn() === 'b' ? 'black' : 'white';
-
-            //this.engine.postMessage('position startpos moves' + getMovesForStockfish(this.instance));
-            //this.engine.postMessage('eval');
-            //("go " + (time.depth ? "depth " + time.depth : "")
-            //this.engine.postMessage('go');
         };
 
         this.start = function () {
@@ -417,9 +383,6 @@ module.exports = function () {
                     this.makeMove(move);
                     moveMadeOrNull = move;
                 }
-
-                // tell the engine about the new game status
-                this.engine.updateGame(this.instance);
 
                 if (gameHasPlayers) {
                     var newTopRatedGameMoveMsg = this.createTopRatedMoveMessage(moveMadeOrNull);
