@@ -28,6 +28,8 @@ var createStockfishGoCommand = function (settings) {
             return 'go nodes ' + settings.nodes;
         } else if (settings.wtime && settings.winc && settings.btime && settings.binc) {
             return 'go wtime ' + settings.wtime + ' winc ' + settings.winc + ' btime ' + settings.btime + ' binc ' + settings.binc;
+        } else if (settings.movetime) {
+            return 'go movetime ' + settings.movetime;
         }
     }
 
@@ -54,8 +56,6 @@ module.exports = function () {
 
         /// Did the AI move?
         if (match) {
-            console.log('STOCKFISH SAYS BEST MOVE IS from %s to %s promotion', match[1], match[2], match[3]);
-
             currentBestMove = {
                 from: match[1],
                 to: match[2],
@@ -76,7 +76,7 @@ module.exports = function () {
         },
         startSearchForBestMove: function (game, options) {
             var goCommandOptions = _.defaults(_.extend({}, options), {
-               depth: 5
+                depth: 5
             });
             bestMoveReceived = false;
             currentBestMove = null;

@@ -69,8 +69,6 @@ var Bot = function (roomName, options) {
     socket.on('new-top-rated-game-move', function (data) {
         self.gameOver = data.gameOver;
 
-        logger.debug('Bot %s recaived new-top-rated-game-move %s', self.name, data.pgn);
-
         self.game.load_pgn(data.pgn);
         self.turn = self.game.turn();
 
