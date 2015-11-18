@@ -10,7 +10,28 @@ var socketClientFactory = require('socket.io-client');
 var Bot = function (roomName, options) {
     var self = this;
     this.name = 'bot_' + util.randomString(8);
-    this.options = _.defaults(_.extend({}, options), {});
+    this.options = _.defaults(_.extend({}, options), {
+        waitSupplier: _.throttle(function () {
+            var min =  Math.floor(Math.random() * 4) + 1; // 1 - 5
+            return min + Math.floor(Math.random() * 25); // 1 - 30
+        }),
+        moveSettingsSupplier: function () {
+            /*
+             var timeLeftInMs = (makeMoveInSeconds - 1) * 1000;
+             var moveSettings = {
+             wtime: isWhite ? timeLeftInMs : 3000,
+             btime: isBlack ? timeLeftInMs : 3000,
+             winc: 0,
+             binc: 0
+             };*/
+
+            var min =  Math.floor(Math.random() * 4) + 1; // 1 - 5
+            var wait = Math.max(this.waitSupplier() - 20, 0); // max 10
+            return {
+                depth: min + wait // max 15
+            };
+        }
+    });
 
     this.engine = engineFactory();
     this.game = new chess.Chess();
@@ -24,7 +45,8 @@ var Bot = function (roomName, options) {
     };
 
     var socketOptions = {
-        query: 'user=' + this.name
+        query: 'user=' + this.name,
+        forceNew: true
     };
 
     var isInTurn = function () {
@@ -34,15 +56,11 @@ var Bot = function (roomName, options) {
     var socket = socketClientFactory('http://localhost:3000', socketOptions);
 
     socket.on('connect', function () {
-        logger.debug('Bot %s connected', self.name);
-
-        socket.emit('join-room', {
-            token: roomName
-        });
+        logger.warn('Bot %s connected and wants to join room %s', self.name, roomName);
     });
 
     socket.on('self-player-connected', function (data) {
-        logger.debug('Bot %s connected to game', self.name);
+        logger.error('Bot %s connected to game', self.name);
 
         self.color = data.side;
         self.joined = true;
@@ -56,14 +74,9 @@ var Bot = function (roomName, options) {
         self.game.load_pgn(data.pgn);
         self.turn = self.game.turn();
 
+        var makeMoveInSeconds = self.options.waitSupplier();
+        var moveSettings = self.options.moveSettingsSupplier;
 
-        var makeMoveInSeconds = Math.floor(Math.random() * 7) + 3;
-        var moveSettings = {
-            wtime: (makeMoveInSeconds - 1) * 1000, // time left for white: 30 seconds
-            btime: 3000, // time left for black: 3 seconds
-            winc: 0,
-            binc: 0
-        };
         self.engine.startSearchForBestMove(self.game, moveSettings);
 
         if (isInTurn()) {
@@ -99,25 +112,30 @@ var Bot = function (roomName, options) {
     socket.on('player-stats', function (data) {
         self.playerCount = data;
 
-        if (self.joined && self.playerCount[self.color] > 2) {
-            socket.disconnect();
+        /* if (self.joined && self.playerCount[self.color] > 2) {
+         logger.warn('Bot %s disconnects because too many player in team %s', self.name, self.color);
 
-            logger.debug('Bot %s disconnects because too many player in team %s', self.name, self.color);
+         socket.disconnect();
 
-            var reconnectInSeconds = 10;
-            setTimeout(function () {
-                logger.debug('Bot %s reconnects...', self.name, reconnectInSeconds);
-                socket.connect();
-            }, reconnectInSeconds * 1000);
 
-            logger.debug('Bot %s reconnects in %d seconds', self.name, reconnectInSeconds);
+         var reconnectInSeconds = 10;
+         setTimeout(function () {
+         logger.debug('Bot %s reconnects...', self.name, reconnectInSeconds);
+         socket.connect();
+         }, reconnectInSeconds * 1000);
 
-        }
+         logger.debug('Bot %s reconnects in %d seconds', self.name, reconnectInSeconds);
+
+         }*/
     });
 
     socket.on('disconnect', function () {
-        logger.debug('Bot %s disconnected', self.name);
+        logger.warn('Bot %s disconnected', self.name);
         self.joined = false; // TODO: set false when leaving game, not "on disconnect"
+    });
+
+    socket.emit('join-room', {
+        token: roomName
     });
 };
 

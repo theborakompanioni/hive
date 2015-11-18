@@ -9,3 +9,4 @@ fix:
 
 improve:
 - it should be possible to include the game via iframe
+- be able to view room as guest
