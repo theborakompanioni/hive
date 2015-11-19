@@ -1,10 +1,5 @@
 <div class="" data-ng-controller="HiveChessGameCtrl">
   <div class="row">
-    <div class="col-xs-12">
-      <div chesshive-game-over-message></div>
-    </div>
-  </div>
-  <div class="row">
     <div class="col-xs-12 col-sm-8 col-md-7">
       <div id="board-panel" class="panel" data-ng-class="{
       'panel-info': !model.gameOver && !model.voted && model.isInTurn,
@@ -48,7 +43,6 @@
       </div>
     </div>
 
-
     <div class="col-xs-12 col-sm-4 col-md-5">
       <div class="panel" data-ng-class="{
       'panel-info': !model.gameOver && !model.voted && model.isInTurn,
@@ -90,6 +84,13 @@
       </div>
     </div>
   </div>
+  
+  <div class="row">
+    <div class="col-xs-12">
+      <div chesshive-game-over-message></div>
+    </div>
+  </div>
+
   <div class="row">
 
     <!-- div class="col-xs-12 col-md-12">
