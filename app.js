@@ -70,6 +70,8 @@ var server = require('http').createServer(app).listen(app.get('port'), function 
 
 require('./setup/socket')(server);
 
-require('./setup/bots')();
+require('./setup/bots')('the-master-board', {
+    amount: 1
+});
 
 module.exports = app;

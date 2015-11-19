@@ -11,24 +11,13 @@ var Bot = function (roomName, options) {
     var self = this;
     this.name = 'bot_' + util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
-        waitSupplier: _.throttle(function () {
-            var min =  Math.floor(Math.random() * 4) + 1; // 1 - 5
-            return min + Math.floor(Math.random() * 25); // 1 - 30
-        }),
+        waitSupplier: function () {
+            return Math.floor(Math.random() * 20) + 1;
+        },
         moveSettingsSupplier: function () {
-            /*
-             var timeLeftInMs = (makeMoveInSeconds - 1) * 1000;
-             var moveSettings = {
-             wtime: isWhite ? timeLeftInMs : 3000,
-             btime: isBlack ? timeLeftInMs : 3000,
-             winc: 0,
-             binc: 0
-             };*/
-
-            var min =  Math.floor(Math.random() * 4) + 1; // 1 - 5
-            var wait = Math.max(this.waitSupplier() - 20, 0); // max 10
+            var min = Math.floor(Math.random() * 4) + 1; // 1 - 4
             return {
-                depth: min + wait // max 15
+                depth: min
             };
         }
     });
