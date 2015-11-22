@@ -25,7 +25,7 @@ angular.module('chesshiveApp')
       '  </div>' +
       '  <div data-ng-if="gameOverData.restarts" ' +
       '    data-chesshive-countdown ' +
-      '    data-time="gameOverData.restartTime"' +
+      '    data-time="model.countdown"' +
       '    data-show-progress-bar="true"' +
       '   ></div>' +
       ' </div>' +
@@ -34,6 +34,7 @@ angular.module('chesshiveApp')
       '</div>',
       controller: function ($scope, $timeout) {
         $scope.showGameOverMessage = false;
+        $scope.model = {};
 
         chessHiveGameSocket.forward('game-over', $scope);
         $scope.$on('socket:game-over', function (event, data) {
@@ -41,9 +42,10 @@ angular.module('chesshiveApp')
           $scope.showGameOverMessage = true;
 
           if ($scope.gameOverData.restarts) {
+            $scope.model.countdown = $scope.gameOverData.restartTimeout;
             $timeout(function () {
               $scope.showGameOverMessage = false;
-            }, $scope.gameOverData.restartTime - Date.now());
+            }, $scope.model.countdown);
           }
         });
       }
@@ -133,13 +135,14 @@ angular.module('chesshiveApp')
         $scope.percentage = 0;
         $scope.countdown = 0;
         $scope.max = 0;
+
         var cancelTimeout = angular.noop;
 
         var updateCountDownTimer = function () {
           cancelTimeout();
 
           var nextTimerUpdate = 100;
-          $scope.countdown = $scope.time - Date.now();
+          $scope.countdown = $scope.initTime - Date.now();
           if ($scope.countdown <= 0) {
             $scope.countdown = 0;
           } else {
@@ -169,7 +172,8 @@ angular.module('chesshiveApp')
 
         $scope.$watch('time', function (newValue) {
           if (newValue) {
-            $scope.max = newValue - Date.now();
+            $scope.max = newValue;
+            $scope.initTime = newValue + Date.now();
             updateCountDownTimer();
           }
         });
@@ -181,61 +185,21 @@ angular.module('chesshiveApp')
       scope: {},
       template: '<div>' +
       ' <div data-ng-show="!gameOver">' +
-      ' <div ' +
-      '  data-chesshive-countdown ' +
-      '  data-time="data.nextDigestTime"' +
+      ' <div data-chesshive-countdown ' +
+      '  data-time="model.countdown"' +
       '  data-show-progress-bar="true"' +
       ' ></div>' +
       '</div>',
-      controller: function ($scope) {
-        $scope.fullSecond = 0;
-        $scope.timeToNextDigest = 0;
-        $scope.precision = 0;
-        $scope.percentage = 0;
-        $scope.digestTimeout = 0;
-
-        var countDownTimerTimeout = null;
+      controller: function ($scope, $timeout) {
+        $scope.model = {};
         chessHiveGameSocket.forward('new-top-rated-game-move', $scope);
         $scope.$on('socket:new-top-rated-game-move', function (event, data) {
-          $timeout.cancel(countDownTimerTimeout);
           $scope.data = data;
-
           $scope.gameOver = data.gameOver;
-          if (!$scope.gameOver) {
-            $scope.digestTimeout = data.digestTimeout;
-            var timeToNextDigestInMs = data.nextDigestTime - Date.now();
-
-            var updateCountDownTimer = function () {
-              if (timeToNextDigestInMs <= 0) {
-                $scope.timeToNextDigest = 0;
-                return -1;
-              }
-
-              var nextTimerUpdate = 1000;
-              $scope.precision = 0;
-
-              $scope.timeToNextDigest = timeToNextDigestInMs;
-
-              $scope.fullSecond = Math.floor($scope.timeToNextDigest / 1000);
-              $scope.percentage = $scope.timeToNextDigest / $scope.digestTimeout * 100;
-
-              if ($scope.timeToNextDigest <= 11000) {
-                nextTimerUpdate = 100;
-              }
-              if ($scope.timeToNextDigest < 10000) {
-                $scope.precision = 1;
-              }
-
-              var offset = (timeToNextDigestInMs - ($scope.fullSecond * 1000));
-              nextTimerUpdate = nextTimerUpdate - offset;
-
-              countDownTimerTimeout = $timeout(updateCountDownTimer, nextTimerUpdate);
-              timeToNextDigestInMs = data.nextDigestTime - Date.now();
-              return countDownTimerTimeout;
-            };
-
-            countDownTimerTimeout = updateCountDownTimer();
-          }
+          $scope.model.countdown = 0;
+          $timeout(function () {
+            $scope.model.countdown = data.nextDigest;
+          }, 1);
         });
       }
     };

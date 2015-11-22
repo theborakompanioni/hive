@@ -102,8 +102,10 @@ module.exports = function () {
                 pgn: this.instance.pgn(),
                 turn: this.instance.turn(),
                 move: move,
+                now: Date.now(),
                 latestDigestTime: this.latestDigestTime,
                 nextDigestTime: this.nextDigestTime,
+                nextDigest: this.nextDigestTime - Date.now(),
                 digestTimeout: this.digestTimeout,
                 gameOver: gameOver,
                 inDraw: inDraw,
@@ -416,7 +418,9 @@ module.exports = function () {
                         winner: currentColorToMove,
                         inDraw: this.instance.in_draw(),
                         restarts: shouldRestart,
-                        restartTime: Date.now() + this.options.restartTimeout
+                        restartTimeout: this.options.restartTimeout,
+                        restartTime: Date.now() + this.options.restartTimeout,
+                        now: Date.now()
                     };
                     firstPlayer.socket.emit('game-over', gameOverMsg);
                     firstPlayer.socket.broadcast.to(this.room).emit('game-over', gameOverMsg);
