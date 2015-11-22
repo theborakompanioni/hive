@@ -1,5 +1,16 @@
 <div class="" data-ng-controller="HiveChessGameCtrl">
   <div class="row">
+    <div class="col-xs-12">
+      <div class="alert alert-info alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+          aria-hidden="true">&times;</span></button>
+        <strong>Multiplayer game!</strong> This game follows normal chess rules with the addition
+        that multiple players have to agree on a move before taking a decision. Every team
+        has 30 seconds for their move - the most suggested one will be selected.
+      </div>
+    </div>
+  </div>
+  <div class="row">
     <div class="col-xs-12 col-sm-8 col-md-7">
       <div id="board-panel" class="panel" data-ng-class="{
       'panel-info': !model.gameOver && !model.voted && model.isInTurn,
@@ -84,7 +95,7 @@
       </div>
     </div>
   </div>
-  
+
   <div class="row">
     <div class="col-xs-12">
       <div chesshive-game-over-message></div>
