@@ -390,7 +390,7 @@ module.exports = function (grunt) {
         }, {
           // workaround since imagemin is not working properly..
           expand: true,
-          cwd: 'bower_components/chessboard.js/img',
+          cwd: 'bower_components/chessboard.js/dist/img',
           src: 'chesspieces/wikipedia/*',
           dest: '<%= yeoman.dist %>/images'
         }, {

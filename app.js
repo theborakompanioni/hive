@@ -71,7 +71,7 @@ var server = require('http').createServer(app).listen(app.get('port'), function 
 require('./setup/socket')(server);
 
 require('./setup/bots')('the-master-board', {
-    amount: 1
+    amount: 2
 });
 
 module.exports = app;

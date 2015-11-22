@@ -1,15 +1,29 @@
 {
   "name": "chessboardjs",
-  "version": "0.3.0",
-  "homepage": "http://chessboardjs.com/",
-  "description": "Standalone JavaScript Chess Board",
-  "main": ["js/chessboard.js", "css/chessboard.css"],
-  "keywords": [
-    "chess",
-    "board"
+  "description": "JavaScript Chess Board",
+  "main": [
+    "dist/js/chessboard.min.js",
+    "dist/css/chessboard.min.css"
   ],
   "authors": [
     "Chris Oakman"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "chessboard",
+    "chess",
+    "board"
+  ],
+  "homepage": "https://github.com/theborakompanioni/chessboardjs",
+  "moduleType": [
+    "globals"
+  ],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
 }

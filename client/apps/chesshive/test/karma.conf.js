@@ -3,7 +3,7 @@
 // Generated on 2015-11-08 using
 // generator-karma 1.0.0
 
-module.exports = function(config) {
+module.exports = function (config) {
   'use strict';
 
   config.set({
@@ -21,6 +21,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'bower_components/chessboard.js/dist/js/chessboard.min.js',
       // bower:js
       'bower_components/jquery/dist/jquery.js',
       'bower_components/angular/angular.js',
@@ -42,7 +43,6 @@ module.exports = function(config) {
       'bower_components/messenger/build/js/messenger-theme-future.js',
       'bower_components/messenger/build/js/messenger-theme-flat.js',
       'bower_components/chessjs/dist/chess.min.js',
-      'bower_components/chessboard.js/js/chessboard.js',
       'bower_components/angular-chessboard/dist/angular-chessboard.min.js',
       'bower_components/angular-socket-io/socket.js',
       'bower_components/angular-mocks/angular-mocks.js',
@@ -53,8 +53,7 @@ module.exports = function(config) {
     ],
 
     // list of files / patterns to exclude
-    exclude: [
-    ],
+    exclude: [],
 
     // web server port
     port: 8080,

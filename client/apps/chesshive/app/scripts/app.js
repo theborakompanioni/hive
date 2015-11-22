@@ -69,6 +69,7 @@ angular
   .config(['nywtonChessboardConfigProvider', function (chessboardProvider) {
     chessboardProvider
       .draggable(true)
+      .showNotation(true)
       .snapbackSpeed(500)
       .snapSpeed(150)
       .moveSpeed('slow')

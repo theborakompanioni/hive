@@ -1,27 +1,38 @@
 {
   "name": "chessboardjs",
-  "version": "0.3.2",
-  "homepage": "http://chessboardjs.com/",
-  "description": "Standalone JavaScript Chess Board",
+  "description": "JavaScript Chess Board",
   "main": [
-    "js/chessboard.js",
-    "css/chessboard.css"
-  ],
-  "keywords": [
-    "chess",
-    "board"
+    "dist/js/chessboard.min.js",
+    "dist/css/chessboard.min.css"
   ],
   "authors": [
     "Chris Oakman"
   ],
   "license": "MIT",
-  "_release": "0.3.2",
+  "keywords": [
+    "chessboard",
+    "chess",
+    "board"
+  ],
+  "homepage": "https://github.com/theborakompanioni/chessboardjs",
+  "moduleType": [
+    "globals"
+  ],
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "_release": "affa54f61e",
   "_resolution": {
-    "type": "version",
-    "tag": "v0.3.2",
-    "commit": "190873cdc3bcac0de89510e7353812f2c9304eb5"
+    "type": "branch",
+    "branch": "master",
+    "commit": "affa54f61ea82761b394e613fd68981485a2f889"
   },
-  "_source": "git://github.com/vstene/chessboardjs.git",
-  "_target": "~0.3.2",
-  "_originalSource": "chessboard.js"
+  "_source": "git://github.com/theborakompanioni/chessboardjs.git",
+  "_target": "master",
+  "_originalSource": "theborakompanioni/chessboardjs"
 }

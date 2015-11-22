@@ -1,6 +1,6 @@
 {
   "name": "chesshive",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "dependencies": {
     "angular": "^1.4.7",
     "angular-animate": "^1.4.7",
@@ -19,8 +19,8 @@
     "messenger": "1.4.2",
     "fontawesome": "4.4.0",
     "chessjs": "juangl/chessjs#0.9.0",
-    "chessboard.js": "vstene/chessboardjs#0.3.2",
-    "angular-chessboard": "theborakompanioni/angular-chessboard#~0.0.5",
+    "chessboard.js": "theborakompanioni/chessboardjs#master",
+    "angular-chessboard": "theborakompanioni/angular-chessboard#~0.0.7",
     "angular-socket-io": "~0.7.0"
   },
   "devDependencies": {
@@ -38,6 +38,7 @@
     }
   },
   "resolutions": {
-    "angular": "^1.4.7"
+    "angular": "^1.4.7",
+    "chessboard.js": "master"
   }
 }
