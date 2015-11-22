@@ -89,7 +89,16 @@ angular.module('chesshiveApp')
       '  </div>' +
       ' </div>' +
       '</div>' +
-      '<span data-ng-show="movesHaveBeenSuggested">{{suggestedMoves | json}}</span>' +
+      '<div data-ng-show="movesHaveBeenSuggested">' +
+      ' <table class="table table-bordered table-condensed table-striped table-hover">' +
+      '  <tr ng-repeat="(move, value) in suggestedMoves">' +
+      '   <td>' +
+      '    <span class="badge badge-default">{{move}}</span>' +
+      '   </td>' +
+      '   <td> {{ value | number:0 }} </td>' +
+      '  </tr>' +
+      ' </table>' +
+      '</div>' +
       '</div>',
       controller: function ($scope) {
         $scope.movesHaveBeenSuggested = false;
