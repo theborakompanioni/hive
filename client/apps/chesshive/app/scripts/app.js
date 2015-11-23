@@ -23,9 +23,9 @@ angular
   ])
   .value('applicationConfig', (function () {
     var isBuildProcessReplacingVars = function hackyWayToSeeVarReplacement() {
-      return '@@<!--' + '%build:replace%'.toLowerCase() + '-->' !== (function() {
-        return '@@<!--%build:replace%-->';
-      })();
+      return '@@<!--' + '%build:replace%'.toLowerCase() + '-->' !== (function () {
+          return '@@<!--%build:replace%-->';
+        })();
     };
     var defaultConfig = {
       name: 'unnamed-app',

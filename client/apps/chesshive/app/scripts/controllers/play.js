@@ -91,11 +91,11 @@ angular.module('chesshiveApp')
       '</div>' +
       '<div data-ng-show="movesHaveBeenSuggested">' +
       ' <table class="table table-bordered table-condensed table-striped table-hover">' +
-      '  <tr ng-repeat="(move, value) in suggestedMoves">' +
+      '  <tr ng-repeat="move in suggestedMoves | orderBy:\'value\':true">' +
       '   <td>' +
-      '    <span class="badge badge-default">{{move}}</span>' +
+      '    <span class="badge badge-default">{{move.key}}</span>' +
       '   </td>' +
-      '   <td> {{ value | number:0 }} </td>' +
+      '   <td> {{ move.value | number:0 }} </td>' +
       '  </tr>' +
       ' </table>' +
       '</div>' +
@@ -108,7 +108,13 @@ angular.module('chesshiveApp')
         $scope.$on('socket:suggested-moves', function (event, data) {
           if (data.team) {
             $scope.movesHaveBeenSuggested = _.keys(data.team).length > 0;
-            $scope.suggestedMoves = data.team;
+            $scope.suggestedMoves = [];
+            angular.forEach(data.team, function (value, key) {
+              $scope.suggestedMoves.push({
+                key: key,
+                value: value
+              });
+            });
           }
         });
 
