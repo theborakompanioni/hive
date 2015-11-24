@@ -40,7 +40,7 @@ module.exports = function () {
         this.creationDate = Date.now();
         this.status = 'init';
 
-        logger.info('init new game in room: ' + this.room);
+        logger.info('init new game in room: ' + this.room.name());
 
         this._reset = function () {
             var game = new chess.Chess();
@@ -73,11 +73,11 @@ module.exports = function () {
             });
 
             _.forEach(removedPlayers, function (removedPlayer) {
-                removedPlayer.socket.broadcast.to(this.room).emit('player-disconnected');
+                removedPlayer.socket.broadcast.to(this.room.name()).emit('player-disconnected');
                 this.playerCount[removedPlayer.side]--;
             }, this);
 
-            player.socket.broadcast.to(this.room).emit('player-stats', this.playerCount);
+            player.socket.broadcast.to(this.room.name()).emit('player-stats', this.playerCount);
 
             var gameHasPlayers = this.players.length > 0;
             if (!gameHasPlayers) {
@@ -146,13 +146,13 @@ module.exports = function () {
             player.socket.emit('self-player-connected', {
                 side: side
             });
-            player.socket.broadcast.to(this.room).emit('player-connected', {
+            player.socket.broadcast.to(this.room.name()).emit('player-connected', {
                 name: player.name,
                 side: side
             });
 
             player.socket.emit('player-stats', this.playerCount);
-            player.socket.broadcast.to(this.room).emit('player-stats', this.playerCount);
+            player.socket.broadcast.to(this.room.name()).emit('player-stats', this.playerCount);
 
             player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
 
@@ -170,9 +170,9 @@ module.exports = function () {
              */
             var game = this;
             player.socket.on('new-move', function (data) {
-                var room = data.token;
+                var roomName = data.token;
 
-                if (game.room !== room) {
+                if (game.room.name() !== roomName) {
                     return;
                 }
                 logger.debug('player %s suggests a move in game %s', player.name, game.name);
@@ -220,7 +220,7 @@ module.exports = function () {
                     black: game.suggestedMoves.black
                 };
                 playerInRoom.socket.emit('suggested-moves', suggestedMovesMsg);
-                playerInRoom.socket.broadcast.to(game.room).emit('suggested-moves', suggestedMovesMsg);
+                playerInRoom.socket.broadcast.to(game.room.name()).emit('suggested-moves', suggestedMovesMsg);
 
                 var moveSelector = isVoteForResignation ? 'resign' : move.san;
                 var teamSize = game.playerCount[playerInRoom.side];
@@ -389,7 +389,7 @@ module.exports = function () {
                 if (gameHasPlayers) {
                     var newTopRatedGameMoveMsg = this.createTopRatedMoveMessage(moveMadeOrNull);
                     firstPlayer.socket.emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
-                    firstPlayer.socket.broadcast.to(this.room).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
+                    firstPlayer.socket.broadcast.to(this.room.name()).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
                 }
             }
 
@@ -423,7 +423,7 @@ module.exports = function () {
                         now: Date.now()
                     };
                     firstPlayer.socket.emit('game-over', gameOverMsg);
-                    firstPlayer.socket.broadcast.to(this.room).emit('game-over', gameOverMsg);
+                    firstPlayer.socket.broadcast.to(this.room.name()).emit('game-over', gameOverMsg);
                 }
 
                 if (shouldRestart) {

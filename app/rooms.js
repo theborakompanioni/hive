@@ -5,13 +5,17 @@ var GameFactory = require('./games')();
 var logger = require('./../setup/logging')({}).standard();
 
 
-var Room = function (name, options) {
-    this.name = name || util.randomString(8);
+var Room = function (roomName, options) {
+    var _name = roomName || util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
         maxUsers: 1000
     });
     this.game = null;
     this.players = [];
+
+    this.name = function() {
+        return _name;
+    };
 
     this.hasGame = function () {
         return !!this.game;
@@ -26,17 +30,17 @@ var Room = function (name, options) {
     };
 
     this.createGame = function () {
-        logger.debug('create new game in room %s', this.name);
+        logger.debug('create new game in room %s', this.name());
 
-        if ('the-master-board' === this.name) {
-            this.game = GameFactory.createMultiplayerHiveChessGame(this.name, {
+        if ('the-master-board' === this.name()) {
+            this.game = GameFactory.createMultiplayerHiveChessGame(this, {
                 autoRestart: true,
                 restartTimeout: 10000,
                 maxRounds: 600,
                 destroyWhenLastPlayerLeft: false
             });
         } else {
-            this.game = GameFactory.createMultiplayerHiveChessGame(this.name);
+            this.game = GameFactory.createMultiplayerHiveChessGame(this);
         }
         return this.game;
     };
@@ -52,30 +56,30 @@ var Room = function (name, options) {
             this.getGameOrNull().removePlayer(player);
         }
 
-        logger.debug('player %s leaves room %s', player.name, this.name);
+        logger.debug('player %s leaves room %s', player.name, this.name());
 
         var removedPlayers = _.remove(this.players, function (p) {
             return player.socket === p.socket;
         });
 
         _.forEach(removedPlayers, function (removedPlayer) {
-            removedPlayer.socket.broadcast.to(this.name).emit('left-room');
+            removedPlayer.socket.broadcast.to(this.name()).emit('left-room');
         }, this);
 
-        logger.debug('player %s left room %s', player.name, this.name);
+        logger.debug('player %s left room %s', player.name, this.name());
     };
 
     this.addPlayer = function (player) {
         if (this.players.length >= this.options.maxUsers) {
-            logger.info('player %s cannot join full room %s', player.name, this.name);
+            logger.info('player %s cannot join full room %s', player.name, this.name());
             return;
         }
         if (this.hasPlayer(player)) {
-            logger.warn('player %s already joined room %s', player.name, this.name);
+            logger.warn('player %s already joined room %s', player.name, this.name());
             return;
         }
 
-        logger.debug('player %s joines room %s', player.name, this.name);
+        logger.debug('player %s joines room %s', player.name, this.name());
         var socket = player.socket;
 
         this.players.push(player);
@@ -85,16 +89,16 @@ var Room = function (name, options) {
             self.removePlayer(player);
         });
 
-        socket.join(this.name);
+        socket.join(this.name());
 
         var joinedRoomMsg = {
             name: player.name,
-            room: this.name
+            room: this.name()
         };
-        socket.broadcast.to(this.name).emit('joined-room', joinedRoomMsg);
+        socket.broadcast.to(this.name()).emit('joined-room', joinedRoomMsg);
         socket.emit('self-joined-room', joinedRoomMsg);
 
-        logger.debug('player %s joined room %s', player.name, this.name);
+        logger.debug('player %s joined room %s', player.name, this.name());
 
         this.getOrCreateGame().addPlayer(player);
     };
@@ -131,7 +135,7 @@ var Rooms = function (options) {
     };
 
     this.createRoom = function (name) {
-        logger.debug('create new room %s', this.name);
+        logger.debug('create new room %s', name);
         this.rooms[name] = new Room(name);
         return this.rooms[name];
     };
