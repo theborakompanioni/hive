@@ -94,13 +94,21 @@ angular.module('chesshiveApp')
       '  <tr ng-repeat="move in suggestedMoves | orderBy:\'value\':true">' +
       '   <td>' +
       '    <span class="badge badge-default">{{move.key}}</span>' +
+      '    <button class="btn btn-default btn-xs pull-right" ' +
+      '       data-ng-click="voteForMove(move.move)" ' +
+      '       data-ng-show="!model.voted">' +
+      '      <i class="fa fa-check"></i>' +
+      '    </button>' +
       '   </td>' +
-      '   <td> {{ move.value | number:0 }} </td>' +
+      '   <td class="text-right"> {{ move.value | number:0 }} </td>' +
       '  </tr>' +
       ' </table>' +
       '</div>' +
       '</div>',
       controller: function ($scope) {
+        $scope.model = {
+          voted: false
+        };
         $scope.movesHaveBeenSuggested = false;
         $scope.suggestedMoves = null;
 
@@ -112,7 +120,8 @@ angular.module('chesshiveApp')
             angular.forEach(data.team, function (move, key) {
               $scope.suggestedMoves.push({
                 key: key,
-                value: move.value
+                value: move.value,
+                move: move
               });
             });
           }
@@ -122,11 +131,22 @@ angular.module('chesshiveApp')
         $scope.$on('socket:new-top-rated-game-move', function () {
           $scope.suggestedMoves = null;
           $scope.movesHaveBeenSuggested = false;
+          $scope.model.voted = false;
+        });
+
+        $scope.voteForMove = function (suggestedMove) {
+          $scope.model.voted = true;
+          $rootScope.$broadcast('chesshive:vote-for-suggested-move', suggestedMove);
+        };
+
+        $scope.$on('chesshive:new-move', function () {
+          $scope.model.voted = true;
         });
       }
     };
   })
-  .directive('chesshiveCountdown', function ($timeout) {
+  .
+  directive('chesshiveCountdown', function ($timeout) {
     return {
       scope: {
         time: '=',
@@ -227,7 +247,7 @@ angular.module('chesshiveApp')
  * # HiveGameCtrl
  * Controller of the chesshiveApp
  */
-  .controller('HiveChessGameCtrl', function ($scope, $timeout, chessHiveGameSocket) {
+  .controller('HiveChessGameCtrl', function ($rootScope, $scope, $timeout, chessHiveGameSocket) {
     /*
      * Initialize a new game
      */
@@ -267,7 +287,7 @@ angular.module('chesshiveApp')
     /*
      * When a piece is dropped, check if the move is legal
      */
-    $scope.onDrop = function (source, target, piece, newPos, oldPos/*, orientation*/) {
+    $scope.onDrop = function (source, target/*, piece, newPos, oldPos, orientation*/) {
       var color = game.turn() === 'b' ? 'black' : 'white';
       // see if the move is legal
       var move = game.move({
@@ -282,30 +302,36 @@ angular.module('chesshiveApp')
         return 'snapback';
       }
 
-      var vote = {
-        token: token,
-        turn: color,
-        resign: false,
-        move: {
-          san: move.san,
-          source: source,
-          target: target,
-          piece: piece,
-          newPosition: ChessBoard.objToFen(newPos),
-          oldPosition: ChessBoard.objToFen(oldPos)
-        }
-      };
-      chessHiveGameSocket.emit('new-move', vote);
+      suggestMove(color, move.san, source, target);
+    };
 
-      $scope.model.voted = true;
-      $scope.model.vote = vote.move;
+    var suggestMove = function (color, san, source, target) {
+      if (!$scope.model.voted) {
+        $scope.model.voted = true;
 
-      Messenger().post({
-        message: 'Your move has been suggested: ' + source + ' -> ' + target,
-        type: 'success',
-        showCloseButton: true,
-        hideAfter: 3
-      });
+        var vote = {
+          token: token,
+          turn: color,
+          resign: false,
+          move: {
+            san: san,
+            source: source,
+            target: target
+          }
+        };
+
+        $scope.model.vote = vote.move;
+
+        chessHiveGameSocket.emit('new-move', vote);
+        $rootScope.$broadcast('chesshive:new-move', vote);
+
+        Messenger().post({
+          message: 'Your move has been suggested: ' + source + ' -> ' + target,
+          type: 'success',
+          showCloseButton: true,
+          hideAfter: 3
+        });
+      }
     };
 
     // update the board position after the piece snap
@@ -403,7 +429,7 @@ angular.module('chesshiveApp')
     /*
      * Notify that the game is full => impossible to join the game
      */
-    chessHiveGameSocket.on('full', function () {
+    chessHiveGameSocket.on('room-max-capacity-reached', function () {
       //alert("This game has been already joined by too many people.");
     });
 
@@ -433,5 +459,9 @@ angular.module('chesshiveApp')
       chessHiveGameSocket.emit('leave-room', {
         token: token
       });
+    });
+
+    $scope.$on('chesshive:vote-for-suggested-move', function (event, data) {
+      suggestMove(data.color, data.san, data.source, data.target);
     });
   });

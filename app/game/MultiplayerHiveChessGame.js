@@ -8,18 +8,6 @@ var noop = function () {
 };
 
 module.exports = function () {
-    /*function getMovesForStockfish(game) {
-     var moves = '';
-     var history = game.history({verbose: true});
-
-     for(var i = 0; i < history.length; ++i) {
-     var move = history[i];
-     moves += ' ' + move.from + move.to + (move.promotion ? move.promotion : '');
-     }
-
-     return moves;
-     }*/
-
     var DEFAULT_DIGEST_TIMEOUT_PLAYER = 30 * 1000; //30.5 * 1000;
     var DEFAULT_DIGEST_TIMEOUT_NOPLAYER = 3000; //5.5 * 1000;
 
@@ -167,7 +155,6 @@ module.exports = function () {
 
             player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
 
-
             var suggestedMovesMsg = {
                 team: this.suggestedMoves[side],
                 white: this.suggestedMoves.white,
@@ -230,16 +217,17 @@ module.exports = function () {
                     white: game.suggestedMoves.white,
                     black: game.suggestedMoves.black
                 };
+
                 playerInRoom.socket.emit('suggested-moves', suggestedMovesMsg);
                 playerInRoom.socket.broadcast.to(game.socketId()).emit('suggested-moves', suggestedMovesMsg);
 
                 var moveSelector = isVoteForResignation ? 'resign' : move.san;
                 var teamSize = game.playerCount[playerInRoom.side];
                 var suggestedMovesForCurrentTeam = game.suggestedMoves[playerInRoom.side];
-                var countOfSuggestedMove = suggestedMovesForCurrentTeam[moveSelector];
+                var countOfSuggestedMove = suggestedMovesForCurrentTeam[moveSelector].value;
                 var moreThanHalfHaveVotedForCurrentMove = countOfSuggestedMove > Math.floor(teamSize / 2);
 
-                var countOfVotesForTeam = _.sum(suggestedMovesForCurrentTeam);
+                var countOfVotesForTeam = _.sum(_.pluck(suggestedMovesForCurrentTeam, 'value'));
                 var allPlayersOfTeamVoted = countOfVotesForTeam === teamSize;
                 if (allPlayersOfTeamVoted || moreThanHalfHaveVotedForCurrentMove) {
                     game.digest();
@@ -299,10 +287,7 @@ module.exports = function () {
                  token: token,
                  source: source,
                  target: target,
-                 piece: piece,
-                 turn: game.turn() === 'b' ? 'black' : 'white',
-                 newPosition: ChessBoard.objToFen(newPos),
-                 oldPosition: ChessBoard.objToFen(oldPos)
+                 turn: game.turn() === 'b' ? 'black' : 'white'
                  }
                  */
                 if (!isValidMove(this, data)) {
@@ -314,8 +299,8 @@ module.exports = function () {
                 if (!this.suggestedMoves[color][moveKey]) {
                     this.suggestedMoves[color][moveKey] = {
                         value: 0,
+                        color: color,
                         san: validMove.san,
-                        newPosition: data.newPosition,
                         source: data.source,
                         target: data.target
                     };
