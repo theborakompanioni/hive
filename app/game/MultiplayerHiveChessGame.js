@@ -250,10 +250,10 @@ module.exports = function () {
         this.getMoveForColorOrNull = function (color) {
             var max = 0;
             var moveKey = null;
-            _.forEach(this.suggestedMoves[color], function (value, key) {
-                if (value > max) {
+            _.forEach(this.suggestedMoves[color], function (move, key) {
+                if (move.value > max) {
                     moveKey = key;
-                    max = value;
+                    max = move.value;
                 }
             });
 
@@ -312,9 +312,15 @@ module.exports = function () {
 
                 var moveKey = validMove.san;
                 if (!this.suggestedMoves[color][moveKey]) {
-                    this.suggestedMoves[color][moveKey] = 0;
+                    this.suggestedMoves[color][moveKey] = {
+                        value: 0,
+                        san: validMove.san,
+                        newPosition: data.newPosition,
+                        source: data.source,
+                        target: data.target
+                    };
                 }
-                this.suggestedMoves[color][moveKey]++;
+                this.suggestedMoves[color][moveKey].value++;
 
                 return validMove;
             }

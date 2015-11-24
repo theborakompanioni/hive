@@ -69,7 +69,7 @@ angular.module('chesshiveApp')
     };
   })
 
-  .directive('chesshiveSuggestedMoves', function ($timeout, chessHiveGameSocket) {
+  .directive('chesshiveSuggestedMoves', function ($rootScope, $timeout, chessHiveGameSocket) {
     return {
       scope: {
         isInTurn: '='
@@ -109,10 +109,10 @@ angular.module('chesshiveApp')
           if (data.team) {
             $scope.movesHaveBeenSuggested = _.keys(data.team).length > 0;
             $scope.suggestedMoves = [];
-            angular.forEach(data.team, function (value, key) {
+            angular.forEach(data.team, function (move, key) {
               $scope.suggestedMoves.push({
                 key: key,
-                value: value
+                value: move.value
               });
             });
           }
