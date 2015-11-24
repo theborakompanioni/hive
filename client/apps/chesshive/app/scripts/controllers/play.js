@@ -355,8 +355,6 @@ angular.module('chesshiveApp')
       $scope.model.color = color;
       $scope.model.pieceImageSrc = 'images/chesspieces/wikipedia/' + color.charAt(0) + 'K.png';
 
-      $scope.model.isInTurn = isInTurn();
-
       $scope.board.orientation(color);
     });
 
@@ -379,7 +377,6 @@ angular.module('chesshiveApp')
       $scope.model.gameHistoryString = game.pgn();
       $scope.model.turn = game.turn();
       $scope.model.isInTurn = isInTurn();
-
       $scope.model.vote = null;
       $scope.model.voted = false;
 

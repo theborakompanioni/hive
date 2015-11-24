@@ -57,7 +57,7 @@ angular
         controllerAs: 'about'
       })
       .otherwise({
-        redirectTo: '/'
+        redirectTo: '/play'
       });
   })
   .config([function () {
