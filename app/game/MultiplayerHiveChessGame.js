@@ -8,14 +8,13 @@ var noop = function () {
 };
 
 module.exports = function () {
-    var DEFAULT_DIGEST_TIMEOUT_PLAYER = 30 * 1000; //30.5 * 1000;
-    var DEFAULT_DIGEST_TIMEOUT_NOPLAYER = 3000; //5.5 * 1000;
-
     var MultiplayerChessHiveGame = function (room, options) {
         var _name = util.randomString(8);
         this.options = _.defaults(_.extend({}, options), {
             autoRestart: true,
             restartTimeout: 15000,
+            digestTimeout: 30 * 1000,
+            digestTimeoutNoPlayer: 3000,
             maxRounds: 400,
             destroyWhenLastPlayerLeft: true
         });
@@ -52,7 +51,6 @@ module.exports = function () {
             };
             this.lastMoves = [];
             this.digestCount = 0;
-            this.digestTimeout = DEFAULT_DIGEST_TIMEOUT_PLAYER;
             this.nextDigestTime = -1;
             this.latestDigestTime = -1;
             this.cancelDigestTimeout = noop;
@@ -105,7 +103,7 @@ module.exports = function () {
                 latestDigestTime: this.latestDigestTime,
                 nextDigestTime: this.nextDigestTime,
                 nextDigest: this.nextDigestTime - Date.now(),
-                digestTimeout: this.digestTimeout,
+                digestTimeout: this.options.digestTimeout,
                 gameOver: gameOver,
                 inDraw: inDraw,
                 colorToMove: this.colorToMove,
@@ -363,22 +361,22 @@ module.exports = function () {
             this.cancelDigestTimeout();
 
             this.latestDigestTime = Date.now();
+            var isFirstRun = this.digestCount === 0;
 
             var firstPlayer = this.players[0];
             var gameHasPlayers = !!firstPlayer;
 
             var currentColorToMove = this.colorToMove;
 
-            var nextDigest = this.digestTimeout;
+            var nextDigest = this.options.digestTimeout;
             var oppositeColorTeamSize = this.playerCount[currentColorToMove === 'white' ? 'black' : 'white'];
-            if (oppositeColorTeamSize <= 0) {
-                nextDigest = Math.min(DEFAULT_DIGEST_TIMEOUT_PLAYER, DEFAULT_DIGEST_TIMEOUT_NOPLAYER);
+            if (!isFirstRun && oppositeColorTeamSize <= 0) {
+                nextDigest = Math.min(this.options.digestTimeout, this.options.digestTimeoutNoPlayer);
             }
 
             this.nextDigestTime = Date.now() + nextDigest;
 
             if (!this.isGameOver()) {
-                var isFirstRun = this.digestCount === 0;
 
                 var moveMadeOrNull = null;
 
@@ -417,6 +415,7 @@ module.exports = function () {
                 var shouldRestart = this.shouldRestart();
                 if (gameHasPlayers) {
                     var gameOverMsg = {
+                        gameOver: true,
                         winner: currentColorToMove,
                         inDraw: this.instance.in_draw(),
                         restarts: shouldRestart,

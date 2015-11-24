@@ -12,17 +12,27 @@ angular.module('chesshiveApp')
 
   })
 
-  .directive('chesshiveGameOverMessage', function ($timeout, chessHiveGameSocket) {
+  .directive('chesshiveGameOverMessage', function () {
+    /*
+     { "winner": "white", "inDraw": false, "restarts": true, "restartTimeout": 10000, "restartTime": 1448401755116, "now": 1448401745116 }
+     */
     return {
       scope: {},
-      template: '<div class="panel panel-default" data-ng-if="showGameOverMessage">' +
+      template: '<div class="panel panel-default" data-ng-show="model.gameOver">' +
       ' <div class="panel-heading">' +
-      '  <h4>Game over</h4>' +
+      '  <p style="margin-top:13px;">' +
+      '   <span data-ng-show="inDraw">Game over. Game ended in a<strong> a draw</strong>.</span>' +
+      '   <span data-ng-hide="inDraw">' +
+      '    <img data-ng-src="{{model.winnerImageSrc}}" style="height:32px; margin-top:-7px;"/>' +
+      '    Game over. <strong>{{gameOverData.winner | firstCharUppercase }}</strong> won.' +
+      '   </span>' +
+      '  </p>' +
       ' </div>' +
       ' <div class="panel-body">' +
-      '  <div class="alert alert-info">' +
-      '   {{ gameOverData | json }}' +
-      '  </div>' +
+      '  <h3>Game over.</h3>' +
+      '  <span data-ng-show="gameOverData.restarts">' +
+      '   A new game will start shortly.' +
+      '  </span>' +
       '  <div data-ng-if="gameOverData.restarts" ' +
       '    data-chesshive-countdown ' +
       '    data-time="model.countdown"' +
@@ -32,22 +42,31 @@ angular.module('chesshiveApp')
       ' <div class="panel-footer">' +
       ' </div>' +
       '</div>',
-      controller: function ($scope, $timeout) {
-        $scope.showGameOverMessage = false;
-        $scope.model = {};
+      controller: function ($scope, $timeout, HiveChessService) {
+        $scope.model = {
+          gameOver: false
+        };
 
-        chessHiveGameSocket.forward('game-over', $scope);
+        HiveChessService.socket().forward('game-over', $scope);
         $scope.$on('socket:game-over', function (event, data) {
+          onGameOver(data);
+        });
+
+        HiveChessService.socket().forward('new-top-rated-game-move', $scope);
+        $scope.$on('socket:new-top-rated-game-move', function (event, data) {
+          $scope.model.gameOver = data.gameOver;
+        });
+
+        function onGameOver(data) {
           $scope.gameOverData = data;
-          $scope.showGameOverMessage = true;
+          $scope.model.gameOver = data.gameOver;
+
+          $scope.model.winnerImageSrc = data.inDraw ? '' : HiveChessService.createImageSource(data.winner.charAt(0) + 'K');
 
           if ($scope.gameOverData.restarts) {
             $scope.model.countdown = $scope.gameOverData.restartTimeout;
-            $timeout(function () {
-              $scope.showGameOverMessage = false;
-            }, $scope.model.countdown);
           }
-        });
+        }
       }
     };
   })
@@ -239,6 +258,17 @@ angular.module('chesshiveApp')
       }
     };
   })
+  .factory('HiveChessService', function (chessHiveGameSocket, nywtonChessboardConfig) {
+
+    return {
+      socket: function () {
+        return chessHiveGameSocket;
+      },
+      createImageSource: function (piece) {
+        return nywtonChessboardConfig.pieceTheme.replace('{piece}', piece);
+      }
+    };
+  })
 
 /**
  * @ngdoc function
@@ -247,7 +277,8 @@ angular.module('chesshiveApp')
  * # HiveGameCtrl
  * Controller of the chesshiveApp
  */
-  .controller('HiveChessGameCtrl', function ($rootScope, $scope, $timeout, chessHiveGameSocket) {
+  .controller('HiveChessGameCtrl', function ($rootScope, $scope, $timeout, HiveChessService) {
+    var chessHiveGameSocket = HiveChessService.socket();
     /*
      * Initialize a new game
      */
@@ -353,7 +384,7 @@ angular.module('chesshiveApp')
       $scope.model.joined = true;
       $scope.model.orientation = color;
       $scope.model.color = color;
-      $scope.model.pieceImageSrc = 'images/chesspieces/wikipedia/' + color.charAt(0) + 'K.png';
+      $scope.model.pieceImageSrc = HiveChessService.createImageSource(color.charAt(0) + 'K'); //'images/chesspieces/wikipedia/' + color.charAt(0) + 'K.png';
 
       $scope.board.orientation(color);
     });

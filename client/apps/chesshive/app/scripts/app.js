@@ -21,7 +21,7 @@ angular
     'nywton.chessboard',
     'btford.socket-io'
   ])
-  .value('applicationConfig', (function () {
+  .constant('applicationConfig', (function () {
     var isBuildProcessReplacingVars = function hackyWayToSeeVarReplacement() {
       return '@@<!--' + '%build:replace%'.toLowerCase() + '-->' !== (function () {
           return '@@<!--%build:replace%-->';
@@ -29,6 +29,7 @@ angular
     };
     var defaultConfig = {
       name: 'unnamed-app',
+      debugEnabled: true,
       io: {
         host: 'http://localhost:3000'
       }
@@ -79,7 +80,9 @@ angular
       .position('')
       .pieceTheme('images/chesspieces/wikipedia/{piece}.png');
   }])
-
+  .config(function(applicationConfig, $logProvider) {
+    $logProvider.debugEnabled(applicationConfig.debugEnabled);
+  })
   .factory('chessHiveGameSocket', function (socketFactory, applicationConfig) {
     var username = 'Anonymous';
 
@@ -92,6 +95,14 @@ angular
     });
 
     return chessHiveGameSocket;
+  })
+  .filter('firstCharUppercase', function () {
+    return function (input) {
+      if (!input || (typeof input !== 'string' && !(input instanceof String))) {
+        return input;
+      }
+      return input.substring(0, 1).toUpperCase() + input.substring(1);
+    };
   })
   .controller('NavbarCtrl', function (applicationConfig) {
     this.appName = applicationConfig.name;

@@ -18,6 +18,7 @@
   "ui": {
     "app": {
       "name": "chesshive-dev-ui",
+      "debugEnabled": true,
       "io": {
         "host": "http://localhost:3000"
       },

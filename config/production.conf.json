@@ -18,10 +18,11 @@
   "ui": {
     "app": {
       "name": "chesshive",
+      "debugEnabled": false,
       "io": {
         "host": "http://chess.openmrc.com:3000"
       },
-      "google":{
+      "google": {
         "analytics": {
           "tracker": "UA-48540954-7"
         }
