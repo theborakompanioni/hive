@@ -75,8 +75,12 @@ var Room = function (roomName, options) {
     };
 
     this.addPlayer = function (player) {
+        var socket = player.socket;
         if (this.players.length >= this.options.maxUsers) {
             logger.info('player %s cannot join full room %s', player.name, this.name());
+            socket.emit('room-max-capacity-reached', {
+                room: this.name()
+            });
             return;
         }
         if (this.hasPlayer(player)) {
@@ -85,7 +89,6 @@ var Room = function (roomName, options) {
         }
 
         logger.debug('player %s joines room %s', player.name, this.name());
-        var socket = player.socket;
 
         this.players.push(player);
 
@@ -95,6 +98,7 @@ var Room = function (roomName, options) {
         });
 
         var game = this.getOrCreateGame();
+
         socket.join(this.socketId());
 
         var joinedRoomMsg = {
