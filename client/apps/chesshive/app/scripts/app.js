@@ -42,6 +42,9 @@ angular
   .config(function ($routeProvider) {
     $routeProvider
       .when('/', {
+        redirectTo: '/play'
+      })
+      .when('/home', {
         templateUrl: 'views/main.html',
         controller: 'MainCtrl',
         controllerAs: 'main'
@@ -57,7 +60,7 @@ angular
         controllerAs: 'about'
       })
       .otherwise({
-        redirectTo: '/play'
+        redirectTo: '/'
       });
   })
   .config([function () {
