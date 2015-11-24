@@ -13,8 +13,13 @@ var Room = function (roomName, options) {
     this.game = null;
     this.players = [];
 
-    this.name = function() {
+    this.name = function () {
         return _name;
+    };
+
+    var _socketId = this.name();
+    this.socketId = function () {
+        return _socketId;
     };
 
     this.hasGame = function () {
@@ -63,7 +68,7 @@ var Room = function (roomName, options) {
         });
 
         _.forEach(removedPlayers, function (removedPlayer) {
-            removedPlayer.socket.broadcast.to(this.name()).emit('left-room');
+            removedPlayer.socket.broadcast.to(this.socketId()).emit('left-room');
         }, this);
 
         logger.debug('player %s left room %s', player.name, this.name());
@@ -89,18 +94,21 @@ var Room = function (roomName, options) {
             self.removePlayer(player);
         });
 
-        socket.join(this.name());
+        var game = this.getOrCreateGame();
+        socket.join(this.socketId());
 
         var joinedRoomMsg = {
             name: player.name,
-            room: this.name()
+            room: this.name(),
+            game: game.name()
         };
-        socket.broadcast.to(this.name()).emit('joined-room', joinedRoomMsg);
+
+        socket.broadcast.to(this.socketId()).emit('joined-room', joinedRoomMsg);
         socket.emit('self-joined-room', joinedRoomMsg);
 
         logger.debug('player %s joined room %s', player.name, this.name());
 
-        this.getOrCreateGame().addPlayer(player);
+        game.addPlayer(player);
     };
 };
 

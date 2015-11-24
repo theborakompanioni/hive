@@ -24,6 +24,7 @@ module.exports = function () {
     var DEFAULT_DIGEST_TIMEOUT_NOPLAYER = 3000; //5.5 * 1000;
 
     var MultiplayerChessHiveGame = function (room, options) {
+        var _name = util.randomString(8);
         this.options = _.defaults(_.extend({}, options), {
             autoRestart: true,
             restartTimeout: 15000,
@@ -31,7 +32,6 @@ module.exports = function () {
             destroyWhenLastPlayerLeft: true
         });
         this.room = room;
-        this.name = util.randomString(8);
         this.players = [];
         this.playerCount = {
             white: 0,
@@ -40,7 +40,18 @@ module.exports = function () {
         this.creationDate = Date.now();
         this.status = 'init';
 
-        logger.info('init new game in room: ' + this.room.name());
+        this.name = function () {
+            return _name;
+        };
+
+        var _socketId = this.room.name() /*+ '#' + this.name()*/;
+
+        this.socketId = function () {
+            return _socketId;
+        };
+
+        logger.info('init new game %s in room %s', this.name(), this.room.name());
+
 
         this._reset = function () {
             var game = new chess.Chess();
@@ -73,16 +84,16 @@ module.exports = function () {
             });
 
             _.forEach(removedPlayers, function (removedPlayer) {
-                removedPlayer.socket.broadcast.to(this.room.name()).emit('player-disconnected');
+                removedPlayer.socket.broadcast.to(this.socketId()).emit('player-disconnected');
                 this.playerCount[removedPlayer.side]--;
             }, this);
 
-            player.socket.broadcast.to(this.room.name()).emit('player-stats', this.playerCount);
+            player.socket.broadcast.to(this.socketId()).emit('player-stats', this.playerCount);
 
             var gameHasPlayers = this.players.length > 0;
             if (!gameHasPlayers) {
                 if (this.options.destroyWhenLastPlayerLeft) {
-                    logger.info('game %s stopped because last player left', this.name);
+                    logger.info('game %s stopped because last player left', this.name());
                     this.stop();
                     // TODO: remove game from room
                 }
@@ -132,7 +143,7 @@ module.exports = function () {
             });
             this.players.push(gamePlayer);
 
-            logger.debug('player %s connected to game %s on side %s', player.name, this.name, gamePlayer.side);
+            logger.debug('player %s connected to game %s on side %s', player.name, this.name(), gamePlayer.side);
 
             var self = this;
             player.socket.on('disconnect', function (data) {
@@ -146,13 +157,13 @@ module.exports = function () {
             player.socket.emit('self-player-connected', {
                 side: side
             });
-            player.socket.broadcast.to(this.room.name()).emit('player-connected', {
+            player.socket.broadcast.to(this.socketId()).emit('player-connected', {
                 name: player.name,
                 side: side
             });
 
             player.socket.emit('player-stats', this.playerCount);
-            player.socket.broadcast.to(this.room.name()).emit('player-stats', this.playerCount);
+            player.socket.broadcast.to(this.socketId()).emit('player-stats', this.playerCount);
 
             player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
 
@@ -172,10 +183,10 @@ module.exports = function () {
             player.socket.on('new-move', function (data) {
                 var roomName = data.token;
 
-                if (game.room.name() !== roomName) {
+                if (game.socketId() !== roomName) {
                     return;
                 }
-                logger.debug('player %s suggests a move in game %s', player.name, game.name);
+                logger.debug('player %s suggests a move in game %s', player.name, game.name());
 
                 var playerInRoom = _.findWhere(game.players, {
                     socket: player.socket
@@ -198,12 +209,12 @@ module.exports = function () {
                 var isVoteForResignation = data.resign === true;
                 if (!isVoteForResignation) {
                     if (!isValidMove(game, move)) {
-                        logger.warn('player %s provided illegal move in game %s: ', player.name, game.name, move);
+                        logger.warn('player %s provided illegal move in game %s: ', player.name, game.name(), move);
                         return;
                     }
 
                     var acceptedSuggestedMove = game.suggestMoveForColor(providedTurn, move);
-                    logger.debug('player %s suggests valid move %s in game %s', player.name, acceptedSuggestedMove.san, game.name);
+                    logger.debug('player %s suggests valid move %s in game %s', player.name, acceptedSuggestedMove.san, game.name());
 
                     //playerInRoom.socket.emit('new-move', acceptedSuggestedMove);
                     // TODO: do not send moves to opponents
@@ -211,7 +222,7 @@ module.exports = function () {
                 } else {
                     // TODO: add logic for resignation-vote
                     //game.suggestMoveForColor(providedTurn, 'resign');
-                    logger.debug('player %s suggests resignation in game %s', player.name, game.name);
+                    logger.debug('player %s suggests resignation in game %s', player.name, game.name());
                 }
 
                 var suggestedMovesMsg = {
@@ -220,7 +231,7 @@ module.exports = function () {
                     black: game.suggestedMoves.black
                 };
                 playerInRoom.socket.emit('suggested-moves', suggestedMovesMsg);
-                playerInRoom.socket.broadcast.to(game.room.name()).emit('suggested-moves', suggestedMovesMsg);
+                playerInRoom.socket.broadcast.to(game.socketId()).emit('suggested-moves', suggestedMovesMsg);
 
                 var moveSelector = isVoteForResignation ? 'resign' : move.san;
                 var teamSize = game.playerCount[playerInRoom.side];
@@ -324,7 +335,7 @@ module.exports = function () {
             this._reset();
             this.startDate = Date.now();
             this.status = 'started';
-            logger.debug('game %s %s', this.name, this.status);
+            logger.debug('starting game %s %s', this.name(), this.status);
 
             this.digest();
         };
@@ -357,7 +368,7 @@ module.exports = function () {
         };
 
         this.digest = function () {
-            logger.debug('game %s digest loop %d starts', this.name, this.digestCount);
+            logger.debug('game %s digest loop %d starts', this.name(), this.digestCount);
             this.cancelDigestTimeout();
 
             this.latestDigestTime = Date.now();
@@ -389,14 +400,14 @@ module.exports = function () {
                 if (gameHasPlayers) {
                     var newTopRatedGameMoveMsg = this.createTopRatedMoveMessage(moveMadeOrNull);
                     firstPlayer.socket.emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
-                    firstPlayer.socket.broadcast.to(this.room.name()).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
+                    firstPlayer.socket.broadcast.to(this.socketId()).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
                 }
             }
 
             if (!this.isGameOver()) {
                 this.cancelDigestTimeout = (function scheduleNextDigest(game, timeout, nextDigestCount) {
                     logger.debug('game %s schedule loop digest %d in %d seconds',
-                        game.name, nextDigestCount, Math.floor(timeout / 1000));
+                        game.name(), nextDigestCount, Math.floor(timeout / 1000));
 
                     var cancelTimeoutId = setTimeout(function () {
                         game.cancelDigestTimeout = noop;
@@ -404,13 +415,13 @@ module.exports = function () {
                     }, timeout);
 
                     return function () {
-                        logger.debug('game %s cancel schedule for digest loop %d', game.name, nextDigestCount);
+                        logger.debug('game %s cancel schedule for digest loop %d', game.name(), nextDigestCount);
                         clearTimeout(cancelTimeoutId);
                     };
                 })(this, nextDigest, this.digestCount + 1);
             } else {
                 this.status = 'ended';
-                logger.debug('game %s %s', this.name, this.status);
+                logger.debug('game %s %s', this.name(), this.status);
 
                 var shouldRestart = this.shouldRestart();
                 if (gameHasPlayers) {
@@ -423,25 +434,25 @@ module.exports = function () {
                         now: Date.now()
                     };
                     firstPlayer.socket.emit('game-over', gameOverMsg);
-                    firstPlayer.socket.broadcast.to(this.room.name()).emit('game-over', gameOverMsg);
+                    firstPlayer.socket.broadcast.to(this.socketId()).emit('game-over', gameOverMsg);
                 }
 
                 if (shouldRestart) {
                     this.cancelRestartTimeout = (function scheduleRestart(game, timeout) {
-                        logger.debug('game %s restarts in %d seconds', game.name, Math.floor(timeout / 1000));
+                        logger.debug('game %s restarts in %d seconds', game.name(), Math.floor(timeout / 1000));
                         var cancelTimeoutId = setTimeout(function () {
                             game.restart();
                         }, timeout);
 
                         return function () {
-                            logger.debug('game %s cancel restart', game.name);
+                            logger.debug('game %s cancel restart', game.name());
                             clearTimeout(cancelTimeoutId);
                         };
                     })(this, this.options.restartTimeout);
                 }
             }
 
-            logger.debug('game %s digest loop %d ended', this.name, this.digestCount);
+            logger.debug('game %s digest loop %d ended', this.name(), this.digestCount);
             this.digestCount++;
         };
 
