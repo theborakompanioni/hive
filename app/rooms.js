@@ -6,9 +6,11 @@ var logger = require('./../setup/logging')({}).standard();
 
 
 var Room = function (roomName, options) {
+    var self = this;
     var _name = roomName || util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
-        maxUsers: 1000
+        maxUsers: 1000,
+        emitPlayerConnectEvents: false
     });
     this.game = null;
     this.players = [];
@@ -67,9 +69,17 @@ var Room = function (roomName, options) {
             return player.socket === p.socket;
         });
 
-        _.forEach(removedPlayers, function (removedPlayer) {
-            removedPlayer.socket.broadcast.to(this.socketId()).emit('left-room');
-        }, this);
+        if (this.options.emitPlayerConnectEvents) {
+            _.forEach(removedPlayers, function (removedPlayer) {
+                var leftRoomMsg = {
+                    name: removedPlayer.name,
+                    room: self.name(),
+                    game: self.game.name()
+                };
+
+                removedPlayer.socket.broadcast.to(this.socketId()).emit('left-room', leftRoomMsg);
+            }, this);
+        }
 
         logger.debug('player %s left room %s', player.name, this.name());
     };
@@ -107,8 +117,11 @@ var Room = function (roomName, options) {
             game: game.name()
         };
 
-        socket.broadcast.to(this.socketId()).emit('joined-room', joinedRoomMsg);
         socket.emit('self-joined-room', joinedRoomMsg);
+
+        if (this.options.emitPlayerConnectEvents) {
+            socket.broadcast.to(this.socketId()).emit('joined-room', joinedRoomMsg);
+        }
 
         logger.debug('player %s joined room %s', player.name, this.name());
 
@@ -146,9 +159,9 @@ var Rooms = function (options) {
         return room;
     };
 
-    this.createRoom = function (name) {
+    this.createRoom = function (name, config) {
         logger.debug('create new room %s', name);
-        this.rooms[name] = new Room(name);
+        this.rooms[name] = new Room(name, config || {});
         return this.rooms[name];
     };
 

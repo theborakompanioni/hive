@@ -453,6 +453,12 @@ angular.module('chesshiveApp')
     chessHiveGameSocket.on('player-disconnected', function (data) {
       console.log('[debug] player-disconnected: ' + JSON.stringify(data));
     });
+    chessHiveGameSocket.on('joined-room', function (data) {
+      console.log('[debug] joined-room: ' + JSON.stringify(data));
+    });
+    chessHiveGameSocket.on('left-room', function (data) {
+      console.log('[debug] left-room: ' + JSON.stringify(data));
+    });
 
     /*
      * Notify that the game is full => impossible to join the game

@@ -11,6 +11,9 @@ var Bot = function (roomName, options) {
     var self = this;
     this.name = 'bot_' + util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
+        contemptFactor: Math.floor(Math.random() * 200) - 100,
+        skillLevel: Math.floor(Math.random() * 10),
+        aggressiveness: Math.floor(Math.random() * 100),
         autoReconnect: false,
         waitSupplier: function () {
             return Math.floor(Math.random() * 20) + 1;
@@ -23,7 +26,7 @@ var Bot = function (roomName, options) {
         }
     });
 
-    this.engine = engineFactory();
+    this.engine = engineFactory(options);
     this.game = new chess.Chess();
 
     this.color = null;
@@ -33,6 +36,7 @@ var Bot = function (roomName, options) {
         white: 0,
         black: 0
     };
+    var moveTimeoutId = -1;
 
     var socketOptions = {
         query: 'user=' + this.name,
@@ -62,15 +66,15 @@ var Bot = function (roomName, options) {
         self.game.load_pgn(data.pgn);
         self.turn = self.game.turn();
 
-        var makeMoveInSeconds = self.options.waitSupplier();
-        var moveSettings = self.options.moveSettingsSupplier;
+        if (!self.gameOver && isInTurn()) {
+            var makeMoveInSeconds = self.options.waitSupplier();
+            var moveSettings = self.options.moveSettingsSupplier;
 
-        self.engine.startSearchForBestMove(self.game, moveSettings);
+            self.engine.startSearchForBestMove(self.game, moveSettings);
 
-        if (isInTurn()) {
             logger.debug('Bot %s suggests move in %d seconds', self.name, makeMoveInSeconds);
 
-            setTimeout(function () {
+            moveTimeoutId = setTimeout(function () {
                 if (isInTurn()) {
                     var engineMove = self.engine.getForBestMoveOrNull();
                     if (!engineMove) {
@@ -95,6 +99,10 @@ var Bot = function (roomName, options) {
                 }
             }, makeMoveInSeconds * 1000);
         }
+
+        if (self.gameOver) {
+            self.engine.newGame();
+        }
     });
 
     socket.on('player-stats', function (data) {
@@ -118,6 +126,7 @@ var Bot = function (roomName, options) {
     });
 
     var joinGame = function () {
+        self.engine.newGame();
         socket.emit('join-room', {
             token: roomName
         });
@@ -134,6 +143,7 @@ var Bot = function (roomName, options) {
     socket.on('disconnect', function () {
         logger.warn('Bot %s disconnected', self.name);
         self.joined = false; // TODO: set false when leaving game, not "on disconnect"
+        clearTimeout(moveTimeoutId);
 
         if (self.options.autoReconnect) {
             var reconnectTimeout = self.options.autoReconnect.reconnectTimeout();

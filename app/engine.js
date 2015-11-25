@@ -37,11 +37,16 @@ var createStockfishGoCommand = function (settings) {
 };
 
 
-module.exports = function () {
+module.exports = function (settings) {
+    // http://support.stockfishchess.org/kb/advanced-topics/engine-parameters
+    var options = _.defaults(_.extend({}, settings), {
+        contemptFactor: 0, // -100 - 100
+        skillLevel: 10, // 0 - 20
+    });
+
     var engine = stockfish();
     var bestMoveReceived = false;
     var currentBestMove = null;
-    var deferred = null;
 
     engine.onmessage = function (event) {
         var line;
@@ -66,7 +71,15 @@ module.exports = function () {
         }
     };
 
+    engine.postMessage('uci');
+
+    engine.postMessage('setoption name Contempt Factor value ' + options.contemptFactor);
+    engine.postMessage('setoption name Skill Level value ' + options.skillLevel);
+
     return {
+        newGame: function () {
+            engine.postMessage('ucinewgame');
+        },
         getForBestMoveOrNull: function () {
             if (!bestMoveReceived) {
                 return null;

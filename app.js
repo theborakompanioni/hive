@@ -78,14 +78,18 @@ require('./setup/bots')('the-master-board', {
 });
 
 require('./setup/bots')('the-master-board', {
-    amount: 3,
+    amount: 20,
     bots: {
         autoReconnect: {
             reconnectTimeout: function () {
-                return 5 * 1000 + Math.floor(Math.random() * 30 * 60 * 1000);
-            },
+                var minSeconds = 30;
+                var minutes = 10;
+                return minSeconds * 1000 + minutes * Math.floor(Math.random() * 60 * 1000);
+                },
             disconnectTimeout: function () {
-                return 30 * 1000 + Math.floor(Math.random() * 10 * 60 * 1000);
+                var minSeconds = 30;
+                var minutes = 30;
+                return minSeconds * 1000 + minutes * Math.floor(Math.random() * 60 * 1000);
             }
         }
     }

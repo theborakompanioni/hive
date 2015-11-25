@@ -11,12 +11,13 @@ module.exports = function () {
     var MultiplayerChessHiveGame = function (room, options) {
         var _name = util.randomString(8);
         this.options = _.defaults(_.extend({}, options), {
-            autoRestart: true,
+            autoRestart: true, // TODO: should be false and room destroyed
             restartTimeout: 15000,
             digestTimeout: 30 * 1000,
             digestTimeoutNoPlayer: 3000,
             maxRounds: 400,
-            destroyWhenLastPlayerLeft: true
+            destroyWhenLastPlayerLeft: true,
+            emitPlayerConnectEvents: false
         });
         this.room = room;
         this.players = [];
@@ -64,7 +65,7 @@ module.exports = function () {
             });
         };
 
-        var sendPlayerStatsMessage = function(socket, roomName, data) {
+        var sendPlayerStatsMessage = function (socket, roomName, data) {
             socket.broadcast.to(roomName).emit('player-stats', data);
         };
         var sendPlayerStatsMessageDebounced = _.throttle(sendPlayerStatsMessage, 5000);
@@ -75,7 +76,12 @@ module.exports = function () {
             });
 
             _.forEach(removedPlayers, function (removedPlayer) {
-                removedPlayer.socket.broadcast.to(this.socketId()).emit('player-disconnected');
+                if (this.options.emitPlayerConnectEvents) {
+                    removedPlayer.socket.broadcast.to(this.socketId()).emit('player-disconnected', {
+                        name: removedPlayer.name,
+                        side: removedPlayer.side
+                    });
+                }
                 this.playerCount[removedPlayer.side]--;
             }, this);
 
@@ -89,32 +95,6 @@ module.exports = function () {
                     // TODO: remove game from room
                 }
             }
-        };
-
-
-        this.createTopRatedMoveMessage = function (moveOrUndefined) {
-            var move = moveOrUndefined ||
-                (this.lastMoves.length > 0 ? this.lastMoves[this.lastMoves.length - 1] : null);
-
-            var gameOver = this.isGameOver();
-            var inDraw = this.instance.in_draw();
-            var colorToMove = this.colorToMove;
-            var oppositeColor = colorToMove === 'white' ? 'white' : 'black';
-            return {
-                fen: this.instance.fen(),
-                pgn: this.instance.pgn(),
-                turn: this.instance.turn(),
-                move: move,
-                now: Date.now(),
-                latestDigestTime: this.latestDigestTime,
-                nextDigestTime: this.nextDigestTime,
-                nextDigest: this.nextDigestTime - Date.now(),
-                digestTimeout: this.options.digestTimeout,
-                gameOver: gameOver,
-                inDraw: inDraw,
-                colorToMove: this.colorToMove,
-                winner: inDraw ? 'draw' : oppositeColor
-            };
         };
 
         this.addPlayer = function (player) {
@@ -149,10 +129,13 @@ module.exports = function () {
             player.socket.emit('self-player-connected', {
                 side: side
             });
-            player.socket.broadcast.to(this.socketId()).emit('player-connected', {
-                name: player.name,
-                side: side
-            });
+
+            if (this.options.emitPlayerConnectEvents) {
+                player.socket.broadcast.to(this.socketId()).emit('player-connected', {
+                    name: player.name,
+                    side: side
+                });
+            }
 
             player.socket.emit('player-stats', this.playerCount);
             sendPlayerStatsMessageDebounced(player.socket, this.socketId(), this.playerCount);
@@ -237,6 +220,31 @@ module.exports = function () {
                     game.digest();
                 }
             });
+        };
+
+        this.createTopRatedMoveMessage = function (moveOrUndefined) {
+            var move = moveOrUndefined ||
+                (this.lastMoves.length > 0 ? this.lastMoves[this.lastMoves.length - 1] : null);
+
+            var gameOver = this.isGameOver();
+            var inDraw = this.instance.in_draw();
+            var colorToMove = this.colorToMove;
+            var oppositeColor = colorToMove === 'white' ? 'white' : 'black';
+            return {
+                fen: this.instance.fen(),
+                pgn: this.instance.pgn(),
+                turn: this.instance.turn(),
+                move: move,
+                now: Date.now(),
+                latestDigestTime: this.latestDigestTime,
+                nextDigestTime: this.nextDigestTime,
+                nextDigest: this.nextDigestTime - Date.now(),
+                digestTimeout: this.options.digestTimeout,
+                gameOver: gameOver,
+                inDraw: inDraw,
+                colorToMove: this.colorToMove,
+                winner: inDraw ? 'draw' : oppositeColor
+            };
         };
 
         this.getMoveForColorOrNull = function (color) {
