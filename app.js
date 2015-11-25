@@ -71,7 +71,24 @@ var server = require('http').createServer(app).listen(app.get('port'), function 
 require('./setup/socket')(server);
 
 require('./setup/bots')('the-master-board', {
-    amount: 2
+    amount: 2,
+    bots: {
+        autoReconnect: false
+    }
+});
+
+require('./setup/bots')('the-master-board', {
+    amount: 3,
+    bots: {
+        autoReconnect: {
+            reconnectTimeout: function () {
+                return 5 * 1000 + Math.floor(Math.random() * 30 * 60 * 1000);
+            },
+            disconnectTimeout: function () {
+                return 30 * 1000 + Math.floor(Math.random() * 10 * 60 * 1000);
+            }
+        }
+    }
 });
 
 module.exports = app;

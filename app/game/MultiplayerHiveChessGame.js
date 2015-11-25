@@ -64,6 +64,11 @@ module.exports = function () {
             });
         };
 
+        var sendPlayerStatsMessage = function(socket, roomName, data) {
+            socket.broadcast.to(roomName).emit('player-stats', data);
+        };
+        var sendPlayerStatsMessageDebounced = _.throttle(sendPlayerStatsMessage, 5000);
+
         this.removePlayer = function (player) {
             var removedPlayers = _.remove(this.players, function (p) {
                 return player.socket === p.socket;
@@ -74,7 +79,7 @@ module.exports = function () {
                 this.playerCount[removedPlayer.side]--;
             }, this);
 
-            player.socket.broadcast.to(this.socketId()).emit('player-stats', this.playerCount);
+            sendPlayerStatsMessageDebounced(player.socket, this.socketId(), this.playerCount);
 
             var gameHasPlayers = this.players.length > 0;
             if (!gameHasPlayers) {
@@ -85,6 +90,7 @@ module.exports = function () {
                 }
             }
         };
+
 
         this.createTopRatedMoveMessage = function (moveOrUndefined) {
             var move = moveOrUndefined ||
@@ -149,7 +155,7 @@ module.exports = function () {
             });
 
             player.socket.emit('player-stats', this.playerCount);
-            player.socket.broadcast.to(this.socketId()).emit('player-stats', this.playerCount);
+            sendPlayerStatsMessageDebounced(player.socket, this.socketId(), this.playerCount);
 
             player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
 

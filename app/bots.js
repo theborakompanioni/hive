@@ -11,6 +11,7 @@ var Bot = function (roomName, options) {
     var self = this;
     this.name = 'bot_' + util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
+        autoReconnect: false,
         waitSupplier: function () {
             return Math.floor(Math.random() * 20) + 1;
         },
@@ -116,14 +117,35 @@ var Bot = function (roomName, options) {
          }*/
     });
 
+    var joinGame = function () {
+        socket.emit('join-room', {
+            token: roomName
+        });
+
+        if (self.options.autoReconnect) {
+            var disconnectTimeout = self.options.autoReconnect.disconnectTimeout();
+            logger.debug('bot %s auto-disconnects in %d seconds', self.name, disconnectTimeout / 1000);
+            setTimeout(function () {
+                socket.disconnect();
+            }, disconnectTimeout);
+        }
+    };
+
     socket.on('disconnect', function () {
         logger.warn('Bot %s disconnected', self.name);
         self.joined = false; // TODO: set false when leaving game, not "on disconnect"
+
+        if (self.options.autoReconnect) {
+            var reconnectTimeout = self.options.autoReconnect.reconnectTimeout();
+            logger.debug('bot %s auto-reconnects in %d seconds', self.name, reconnectTimeout / 1000);
+            setTimeout(function () {
+                socket.connect();
+                joinGame();
+            }, reconnectTimeout);
+        }
     });
 
-    socket.emit('join-room', {
-        token: roomName
-    });
+    joinGame();
 };
 
 module.exports = function (options) {
