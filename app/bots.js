@@ -50,11 +50,11 @@ var Bot = function (roomName, options) {
     var socket = socketClientFactory('http://localhost:3000', socketOptions);
 
     socket.on('connect', function () {
-        logger.warn('Bot %s connected and wants to join room %s', self.name, roomName);
+        logger.debug('Bot %s connected and wants to join room %s', self.name, roomName);
     });
 
     socket.on('self-player-connected', function (data) {
-        logger.error('Bot %s connected to game', self.name);
+        logger.debug('Bot %s connected to game', self.name);
 
         self.color = data.side;
         self.joined = true;
@@ -78,7 +78,7 @@ var Bot = function (roomName, options) {
                 if (isInTurn()) {
                     var engineMove = self.engine.getForBestMoveOrNull();
                     if (!engineMove) {
-                        logger.error('Bot %s could not find a good move', self.name);
+                        logger.warn('Bot %s could not find a good move', self.name);
                     } else {
                         var move = self.game.move(engineMove);
                         var vote = {
@@ -92,7 +92,7 @@ var Bot = function (roomName, options) {
                             }
                         };
 
-                        logger.error('Bot %s SUGGESTS MOVE:', self.name, vote);
+                        logger.debug('Bot %s suggests move', self.name, vote);
 
                         socket.emit('new-move', vote);
                     }
@@ -112,7 +112,6 @@ var Bot = function (roomName, options) {
          logger.warn('Bot %s disconnects because too many player in team %s', self.name, self.color);
 
          socket.disconnect();
-
 
          var reconnectInSeconds = 10;
          setTimeout(function () {
@@ -141,7 +140,7 @@ var Bot = function (roomName, options) {
     };
 
     socket.on('disconnect', function () {
-        logger.warn('Bot %s disconnected', self.name);
+        logger.debug('Bot %s disconnected', self.name);
         self.joined = false; // TODO: set false when leaving game, not "on disconnect"
         clearTimeout(moveTimeoutId);
 

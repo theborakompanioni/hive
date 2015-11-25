@@ -1,19 +1,21 @@
 var winston = require('winston');
+var conf = require('./../config/app')().get('app');
+
 winston.emitErrs = true;
 
 var standardLogger = new winston.Logger({
     transports: [
         new winston.transports.File({
-            level: 'info',
-            filename: './logs/all-logs.log',
+            level: conf.logging.file.level,
+            filename: './logs/application.log',
             handleExceptions: true,
             json: true,
             maxsize: 5242880, //5MB
-            maxFiles: 5,
+            maxFiles: 10,
             colorize: false
         }),
         new winston.transports.Console({
-            level: 'debug',
+            level: conf.logging.console.level,
             handleExceptions: true,
             json: false,
             colorize: true

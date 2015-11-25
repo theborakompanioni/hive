@@ -12,6 +12,7 @@ module.exports = function (app, conf) {
         frequency: 'daily',
         verbose: false
     });
+
     app.use(morgan(conf.format || 'dev', {
         stream: accessLogStream
     }));

@@ -13,6 +13,14 @@
     "morgan": {
       "dir": "logs",
       "format": "combined"
+    },
+    "logging": {
+      "file": {
+        "level": "info"
+      },
+      "console": {
+        "level": "info"
+      }
     }
   },
   "ui": {

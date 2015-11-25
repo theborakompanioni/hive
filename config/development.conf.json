@@ -13,6 +13,14 @@
     "morgan": {
       "dir": "logs/dev",
       "format": "dev"
+    },
+    "logging": {
+      "file": {
+        "level": "info"
+      },
+      "console": {
+        "level": "debug"
+      }
     }
   },
   "ui": {
@@ -22,7 +30,7 @@
       "io": {
         "host": "http://localhost:3000"
       },
-      "google":{
+      "google": {
         "analytics": {
           "tracker": "UA-XXXXX-X"
         }
