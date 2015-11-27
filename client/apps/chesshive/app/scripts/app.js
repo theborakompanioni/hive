@@ -104,6 +104,9 @@ angular
       return input.substring(0, 1).toUpperCase() + input.substring(1);
     };
   })
+  .controller('HeadCtrl', function (applicationConfig) {
+    this.appName = applicationConfig.name;
+  })
   .controller('NavbarCtrl', function (applicationConfig) {
     this.appName = applicationConfig.name;
   });
