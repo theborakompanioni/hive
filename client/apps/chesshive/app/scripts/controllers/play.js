@@ -74,7 +74,7 @@ angular.module('chesshiveApp')
     return {
       scope: {},
       template: '<ul class="list-unstyled">' +
-      '<li><i class="fa fa-circle-o"></i> White {{ playerStats.white | number:0 }}</li>' +
+      '<li><i class="fa fa-circle-o"></i> White: {{ playerStats.white | number:0 }}</li>' +
       '<li><i class="fa fa-circle"></i> Black: {{ playerStats.black | number:0 }}</li>' +
       '</ul>',
       controller: function ($scope) {

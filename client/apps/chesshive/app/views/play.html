@@ -20,13 +20,14 @@
         <div class="panel-heading">
           <p style="margin-top:13px;">
             <span data-ng-show="model.turn === 'w'">
-            <img src="images/chesspieces/wikipedia/wK.png" style="height:32px; margin-top:-7px;"/>
+            <img src="images/chesspieces/wikipedia/wK.png" style="height:32px; margin-top:-7px;" alt="White king"/>
               <strong>white</strong> to move
             </span>
             <span data-ng-show="model.turn === 'b'">
-            <img src="images/chesspieces/wikipedia/bK.png" style="height:32px; margin-top:-7px;"/>
+            <img src="images/chesspieces/wikipedia/bK.png" style="height:32px; margin-top:-7px;" alt="Black king"/>
               <strong>black</strong> to move
             </span>
+
             <span class="visible-xs-dis pull-right"
                   style="font-size: 2em; line-height: 0.8em;"
                   data-chesshive-time-to-next-digest
@@ -35,17 +36,17 @@
 
             <span class="label label-primary" style="margin-left: 0.5em;"
                   data-ng-show="model.isInTurn && !model.voted">make your move</span>
+
             <span class="label label-success" style="margin-left: 0.5em;"
                   data-ng-show="model.isInTurn && model.voted">vote accepted</span>
-
-
           </p>
         </div>
+
         <div data-chesshive-time-to-next-digest
              data-show-progress-bar="true"
              data-show-text="false"></div>
-        <div class="panel-body">
 
+        <div class="panel-body">
           <div class="col-xs-offset-0 col-xs-12
                       col-sm-offset-0 col-sm-12">
             <div
@@ -55,12 +56,14 @@
               on-drop="onDrop"
               on-snap-end="onSnapEnd"
               data-nywton-chessboard-autoresize
-              ></div>
+            ></div>
+
             <div class="caption text-center">
 
             </div>
           </div>
         </div>
+
         <div class="panel-footer">
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-default"
@@ -85,7 +88,7 @@
     }">
         <div class="panel-heading">
           <p style="margin-top:13px;">
-            <img data-ng-src="{{model.pieceImageSrc}}" style="height:32px; margin-top:-7px;"/>
+            <img data-ng-src="{{model.pieceImageSrc}}" style="height:32px; margin-top:-7px;" alt="Your color"/>
             You are in team <strong>{{model.orientation}}</strong>
           </p>
         </div>
