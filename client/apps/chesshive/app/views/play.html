@@ -19,32 +19,45 @@
     }">
         <div class="panel-heading">
           <p style="margin-top:13px;">
-          <span data-ng-show="model.turn === 'w'">
-          <img src="images/chesspieces/wikipedia/wK.png" style="height:32px; margin-top:-7px;"/>
-            <strong>white</strong> to move
-          </span>
-          <span data-ng-show="model.turn === 'b'">
-          <img src="images/chesspieces/wikipedia/bK.png" style="height:32px; margin-top:-7px;"/>
-            <strong>black</strong> to move
-          </span>
+            <span data-ng-show="model.turn === 'w'">
+            <img src="images/chesspieces/wikipedia/wK.png" style="height:32px; margin-top:-7px;"/>
+              <strong>white</strong> to move
+            </span>
+            <span data-ng-show="model.turn === 'b'">
+            <img src="images/chesspieces/wikipedia/bK.png" style="height:32px; margin-top:-7px;"/>
+              <strong>black</strong> to move
+            </span>
+            <span class="visible-xs-dis pull-right"
+                  style="font-size: 2em; line-height: 0.8em;"
+                  data-chesshive-time-to-next-digest
+                  data-show-progress-bar="false"
+                  data-show-text="true"></span>
 
-          <span class="label label-primary pull-right"
-                data-ng-show="model.isInTurn && !model.voted">make your move</span>
-            <span class="label label-success pull-right"
+            <span class="label label-primary" style="margin-left: 0.5em;"
+                  data-ng-show="model.isInTurn && !model.voted">make your move</span>
+            <span class="label label-success" style="margin-left: 0.5em;"
                   data-ng-show="model.isInTurn && model.voted">vote accepted</span>
+
+
           </p>
         </div>
+        <div data-chesshive-time-to-next-digest
+             data-show-progress-bar="true"
+             data-show-text="false"></div>
         <div class="panel-body">
-          <div class="col-xs-offset-1 col-xs-10
+
+          <div class="col-xs-offset-0 col-xs-12
                       col-sm-offset-0 col-sm-12">
-            <nywton-chessboard
+            <div
+              data-nywton-chessboard
               data-board="board"
               on-drag-start-cb="onDragStart"
               on-drop="onDrop"
               on-snap-end="onSnapEnd"
               data-nywton-chessboard-autoresize
-              ></nywton-chessboard>
-            <div class="caption">
+              ></div>
+            <div class="caption text-center">
+
             </div>
           </div>
         </div>
@@ -61,7 +74,7 @@
     </div>
 
     <div class="col-xs-12 col-sm-4 col-md-5" data-ng-show="model.gameOver">
-      <div chesshive-game-over-message></div>
+      <div data-chesshive-game-over-message></div>
     </div>
 
     <div class="col-xs-12 col-sm-4 col-md-5" data-ng-show="!model.gameOver">
@@ -77,13 +90,8 @@
           </p>
         </div>
         <div class="panel-body">
-
           <p id="player-stats">
             <span data-chesshive-player-stats></span>
-          </p>
-
-          <p id="time-to-next-digest" style="font-size: 4em;">
-            <span data-chesshive-time-to-next-digest></span>
           </p>
 
           <p id="vote-stats" data-ng-show="model.isInTurn">
@@ -128,7 +136,7 @@
         </div>
       </div>
     </div-->
-    
+
     <div class="col-xs-12 col-md-12">
       <div class="panel panel-default">
         <div class="panel-heading">
