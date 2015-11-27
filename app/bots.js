@@ -11,15 +11,14 @@ var Bot = function (roomName, options) {
     var self = this;
     this.name = 'bot_' + util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
-        contemptFactor: Math.floor(Math.random() * 200) - 100,
-        skillLevel: Math.floor(Math.random() * 10),
-        aggressiveness: Math.floor(Math.random() * 100),
+        contemptFactor: Math.round(Math.random() * 200) - 100,
+        skillLevel: Math.round(Math.random() * 9) + 1,
         autoReconnect: false,
         waitSupplier: function () {
             return Math.floor(Math.random() * 20) + 1;
         },
         moveSettingsSupplier: function () {
-            var min = Math.floor(Math.random() * 4) + 1; // 1 - 4
+            var min = Math.round(Math.random() * 3) + 1; // 1 - 4
             return {
                 depth: min
             };
