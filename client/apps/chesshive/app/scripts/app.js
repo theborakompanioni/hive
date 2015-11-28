@@ -80,19 +80,25 @@ angular
       .position('')
       .pieceTheme('images/chesspieces/wikipedia/{piece}.png');
   }])
-  .config(function(applicationConfig, $logProvider) {
+  .config(function (applicationConfig, $logProvider) {
     $logProvider.debugEnabled(applicationConfig.debugEnabled);
   })
   .factory('chessHiveGameSocket', function (socketFactory, applicationConfig) {
     var username = 'Anonymous';
 
     var socketHost = applicationConfig.io.host;
-    var socket = io(socketHost, {query: 'user=' + username});
-    //var socket = io('http://chess.openmrc.com', {query: 'user=' + username});
+    var socket = io(socketHost, {
+      forceNew: true,
+      reconnection: true,
+      reconnectionAttempts: 10000,
+      reconnectionDelay: 1000,
+      query: 'user=' + username
+    });
 
     var chessHiveGameSocket = socketFactory({
       ioSocket: socket
     });
+
 
     return chessHiveGameSocket;
   })
