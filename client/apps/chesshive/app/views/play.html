@@ -65,7 +65,7 @@
               on-drop="onDrop"
               on-snap-end="onSnapEnd"
               data-nywton-chessboard-autoresize
-            ></div>
+              ></div>
 
             <div class="caption text-center">
 
@@ -75,10 +75,19 @@
 
         <div class="panel-footer">
           <div class="btn-group" role="group">
-            <button type="button" class="btn btn-default"
+            <button type="button" class="btn btn-default btn-sm"
                     data-ng-click="board.orientation('flip')">
               <i class="fa fa-exchange fa-rotate-90"></i>
               <span class="sr-only">Flip Board</span>
+            </button>
+          </div>
+
+          <div class="btn-group pull-right" role="group">
+            <button id="resignButton" type="button"
+                    class="btn btn-danger center-block btn-sm"
+                    data-ng-click="voteForResignation()"
+                    data-ng-show="model.isInTurn"
+                    data-ng-disabled="model.voted">Resign
             </button>
           </div>
         </div>
@@ -115,41 +124,17 @@
           </p>
         </div>
         <div class="panel-footer">
-          <button id="resignButton" type="button"
-                  class="btn btn-danger center-block"
-                  data-ng-click="voteForResignation()"
-                  data-ng-show="model.isInTurn"
-                  data-ng-disabled="model.voted">Vote for Resignation
-          </button>
+          <a data-ng-click="model.showGameHistory = !model.showGameHistory"
+             data-ng-switch data-on="model.showGameHistory">
+            <span data-ng-switch-default>Show</span>
+            <span data-ng-switch-when="true">Hide</span>
+            History
+          </a>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="row">
-
-    <!-- div class="col-xs-12 col-md-12">
-      <div class="panel panel-default">
-        <div class="panel-heading">
-          <h4 class="panel-title" data-ng-show="model.isInTurn">Your move</h4>
-          <h4 class="panel-title" data-ng-show="!model.isInTurn">Opponents move</h4>
-        </div>
-        <div class="panel-body">
-          <div data-ng-show="model.isInTurn">
-            <div data-ng-show="model.voted">
-              {{ model.vote | json }}
-            </div>
-            <div data-ng-hide="model.voted">
-              Make your move!
-            </div>
-          </div>
-        </div>
-        <div class="panel-footer">
-        </div>
-      </div>
-    </div-->
-
-    <div class="col-xs-12 col-md-12">
+    <div class="col-xs-12 col-md-12 animate-show-hide" data-ng-show="model.showGameHistory">
       <div class="panel panel-default">
         <div class="panel-heading">
           <h4 class="panel-title">Moves Made</h4>
