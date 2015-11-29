@@ -112,6 +112,9 @@ angular.module('chesshiveApp')
       ' <table class="table table-bordered table-condensed table-striped table-hover">' +
       '  <tr ng-repeat="move in suggestedMoves | orderBy:\'value\':true">' +
       '   <td>' +
+      '    <img data-ng-if="move.image" ' +
+      '         data-ng-src="images/chesspieces/wikipedia/{{move.image}}" ' +
+      '         style="height:20px;" alt="{{move.image}}"/>' +
       '    <span class="badge badge-default">{{move.key}}</span>' +
       '    <button class="btn btn-default btn-xs pull-right" ' +
       '       data-ng-click="voteForMove(move.move)" ' +
@@ -137,9 +140,18 @@ angular.module('chesshiveApp')
             $scope.movesHaveBeenSuggested = _.keys(data.team).length > 0;
             $scope.suggestedMoves = [];
             angular.forEach(data.team, function (move, key) {
+              var possiblePeace = key && key.charAt(0);
+              var hasImage = possiblePeace === 'B' ||
+                possiblePeace === 'N' ||
+                possiblePeace === 'R' ||
+                possiblePeace === 'K' ||
+                possiblePeace === 'Q';
+              var image = !hasImage ? null : (move.color.charAt(0) + possiblePeace + '.png');
+
               $scope.suggestedMoves.push({
                 key: key,
                 value: move.value,
+                image: image,
                 move: move
               });
             });
