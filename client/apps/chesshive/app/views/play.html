@@ -18,14 +18,29 @@
       'panel-default': model.gameOver || !model.isInTurn
     }">
         <div class="panel-heading">
-          <p style="margin-top:13px;">
-            <span data-ng-show="model.turn === 'w'">
-            <img src="images/chesspieces/wikipedia/wK.png" style="height:32px; margin-top:-7px;" alt="White king"/>
+          <p style="margin-top:13px; position:relative; overflow: hidden;"
+             data-ng-switch data-on="model.turn">
+            <span class="animate-switch" data-ng-switch-when="w">
+              <img src="images/chesspieces/wikipedia/wK.png" style="height:32px; margin-top:-7px;" alt="White king"/>
               <strong>white</strong> to move
+
+              <span class="label animate-show-hide" style="margin-left: 0.5em;"
+                    data-ng-class="{ 'label-success': model.voted, 'label-primary': !model.voted }"
+                    data-ng-show="model.isInTurn">
+                <span data-ng-show="model.voted">vote accepted</span>
+                <span data-ng-show="!model.voted">make your move</span>
+              </span>
             </span>
-            <span data-ng-show="model.turn === 'b'">
-            <img src="images/chesspieces/wikipedia/bK.png" style="height:32px; margin-top:-7px;" alt="Black king"/>
+            <span class="animate-switch" data-ng-switch-when="b">
+              <img src="images/chesspieces/wikipedia/bK.png" style="height:32px; margin-top:-7px;" alt="Black king"/>
               <strong>black</strong> to move
+
+              <span class="label animate-show-hide" style="margin-left: 0.5em;"
+                    data-ng-class="{ 'label-success': model.voted, 'label-primary': !model.voted }"
+                    data-ng-show="model.isInTurn">
+                <span data-ng-show="model.voted">vote accepted</span>
+                <span data-ng-show="!model.voted">make your move</span>
+              </span>
             </span>
 
             <span class="visible-xs-dis pull-right"
@@ -33,12 +48,6 @@
                   data-chesshive-time-to-next-digest
                   data-show-progress-bar="false"
                   data-show-text="true"></span>
-
-            <span class="label label-primary" style="margin-left: 0.5em;"
-                  data-ng-show="model.isInTurn && !model.voted">make your move</span>
-
-            <span class="label label-success" style="margin-left: 0.5em;"
-                  data-ng-show="model.isInTurn && model.voted">vote accepted</span>
           </p>
         </div>
 
