@@ -66,8 +66,8 @@ angular
   })
   .config([function () {
     Messenger.options = {
-      extraClasses: 'messenger-fixed messenger-on-right messenger-on-top',
-      theme: 'air'
+      extraClasses: 'messenger-fixed messenger-on-bottom',
+      theme: 'block'
     };
   }])
   .config(['nywtonChessboardConfigProvider', function (chessboardProvider) {

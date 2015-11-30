@@ -435,7 +435,7 @@ angular.module('chesshiveApp')
         Messenger().post({
           message: color + ' agreed on ' + moveOrNull.san +
           (moveOrNull.__debug_random ? ' (r) ' : ''),
-          type: 'success',
+          type: 'info',
           showCloseButton: true,
           hideAfter: 3
         });

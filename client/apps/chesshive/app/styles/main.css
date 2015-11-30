@@ -9,6 +9,11 @@
   display: none !important;
 }
 
+/** remove ugly margin in theme "block" for bootstrap alerts */
+.messenger-fixed.messenger-on-bottom.messenger-theme-block .messenger-message.alert {
+  margin-bottom: 0;
+}
+
 [ng-click],
 [data-ng-click],
 [x-ng-click] {
