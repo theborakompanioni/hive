@@ -76,8 +76,8 @@ var Room = function (roomName, options) {
                     room: self.name(),
                     game: self.game.name()
                 };
-
                 removedPlayer.socket.broadcast.to(this.socketId()).emit('left-room', leftRoomMsg);
+                removedPlayer.socket.leave(this.socketId());
             }, this);
         }
 

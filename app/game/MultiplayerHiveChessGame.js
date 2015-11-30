@@ -100,6 +100,8 @@ module.exports = function () {
                         name: removedPlayer.name,
                         side: removedPlayer.side
                     });
+
+                    removedPlayer.socket.leave(this.socketId() + '#' + removedPlayer.side);
                 }
                 this.playerCount[removedPlayer.side]--;
             }, this);
@@ -134,6 +136,9 @@ module.exports = function () {
             });
             this.players.push(gamePlayer);
 
+            // let user join room for specific color
+            gamePlayer.socket.join(this.socketId() + '#' + gamePlayer.side);
+
             logger.debug('player %s connected to game %s on side %s', player.name, this.name(), gamePlayer.side);
 
             var self = this;
@@ -163,8 +168,8 @@ module.exports = function () {
 
             var suggestedMovesMsg = {
                 team: this.suggestedMoves[side],
-                white: this.suggestedMoves.white,
-                black: this.suggestedMoves.black
+                //white: this.suggestedMoves.white,
+                //black: this.suggestedMoves.black
             };
 
             player.socket.emit('suggested-moves', suggestedMovesMsg);
@@ -220,12 +225,12 @@ module.exports = function () {
 
                 var suggestedMovesMsg = {
                     team: game.suggestedMoves[playerInRoom.side],
-                    white: game.suggestedMoves.white,
-                    black: game.suggestedMoves.black
+                    //white: game.suggestedMoves.white,
+                    //black: game.suggestedMoves.black
                 };
 
                 playerInRoom.socket.emit('suggested-moves', suggestedMovesMsg);
-                playerInRoom.socket.broadcast.to(game.socketId()).emit('suggested-moves', suggestedMovesMsg);
+                playerInRoom.socket.broadcast.to(game.socketId()  + '#' + playerInRoom.side).emit('suggested-moves', suggestedMovesMsg);
 
                 var moveSelector = isVoteForResignation ? 'resign' : move.san;
                 var teamSize = game.playerCount[playerInRoom.side];
