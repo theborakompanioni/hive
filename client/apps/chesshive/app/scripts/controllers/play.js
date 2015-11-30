@@ -93,11 +93,11 @@ angular.module('chesshiveApp')
       scope: {
         isInTurn: '='
       },
-      template: '<div>' +
+      template: '<div data-ng-switch data-on="movesHaveBeenSuggested">' +
       '<h4>Suggestions</h4>' +
-      '<div data-ng-hide="movesHaveBeenSuggested">' +
+      '<div data-ng-switch-when="false">' +
       ' <p>No move suggestions yet.</p>' +
-      ' <div class="alert bg-primary" data-ng-if="isInTurn">' +
+      ' <div class="alert bg-primary" data-ng-show="isInTurn">' +
       '  <div class="row vertical-align">' +
       '   <div class="col-xs-3">' +
       '    <span class="fa fa-exclamation-triangle fa-2x"></span>' +
@@ -108,9 +108,9 @@ angular.module('chesshiveApp')
       '  </div>' +
       ' </div>' +
       '</div>' +
-      '<div data-ng-show="movesHaveBeenSuggested">' +
+      '<div data-ng-switch-when="true">' +
       ' <table class="table table-bordered table-condensed table-striped table-hover">' +
-      '  <tr ng-repeat="move in suggestedMoves | orderBy:\'value\':true">' +
+      '  <tr data-ng-repeat="move in suggestedMoves | orderBy:\'value\':true">' +
       '   <td>' +
       '    <img data-ng-if="move.image" ' +
       '         data-ng-src="images/chesspieces/wikipedia/{{move.image}}" ' +
