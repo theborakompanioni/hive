@@ -12,7 +12,7 @@ var Bot = function (roomName, options) {
     this.name = 'bot_' + util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
         contemptFactor: Math.round(Math.random() * 200) - 100,
-        skillLevel: Math.round(Math.random() * 9) + 1,
+        skillLevel: Math.round(Math.random() * 12) + 3,
         autoReconnect: false,
         waitSupplier: function () {
             return Math.floor(Math.random() * 20) + 1;
@@ -24,6 +24,8 @@ var Bot = function (roomName, options) {
             };
         }
     });
+
+    logger.error('create bot with skill level %d', this.options.skillLevel);
 
     this.engine = engineFactory(options);
     this.game = new chess.Chess();
