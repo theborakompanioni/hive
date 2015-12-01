@@ -8,20 +8,26 @@
   <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
   <!-- build:css(.) styles/vendor.css -->
   <!-- bower:css -->
-  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
-  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger.css" />
-  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-future.css" />
-  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-flat.css" />
-  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-block.css" />
-  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-air.css" />
-  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-ice.css" />
-  <link rel="stylesheet" href="bower_components/chessboard.js/dist/css/chessboard.min.css" />
+  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css"/>
+  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger.css"/>
+  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-future.css"/>
+  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-flat.css"/>
+  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-block.css"/>
+  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-air.css"/>
+  <link rel="stylesheet" href="bower_components/messenger/build/css/messenger-theme-ice.css"/>
+  <link rel="stylesheet" href="bower_components/chessboard.js/dist/css/chessboard.min.css"/>
   <!-- endbower -->
   <!-- endbuild -->
   <!-- build:css(.tmp) styles/main.css -->
   <link rel="stylesheet" href="../bower_components/fontawesome/css/font-awesome.min.css"/>
   <link rel="stylesheet" href="styles/main.css">
   <!-- endbuild -->
+  <style type="text/css">
+    .embed-container {
+      padding-top: 15px;
+      padding-bottom: 15px;
+    }
+  </style>
 </head>
 <body>
 <!--[if lte IE 8]>
@@ -44,7 +50,7 @@
   </div>
 </div>
 
-<div data-ng-cloak>
+<div class="embed-container" data-ng-cloak>
   <div class="container">
     <div data-ng-view=""></div>
   </div>
