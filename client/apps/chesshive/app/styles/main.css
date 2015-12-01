@@ -12,6 +12,7 @@
 /** remove ugly margin in theme "block" for bootstrap alerts */
 .messenger-fixed.messenger-on-bottom.messenger-theme-block .messenger-message.alert {
   margin-bottom: 0;
+  border-radius: 0;
 }
 
 [ng-click],
