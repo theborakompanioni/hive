@@ -9,13 +9,17 @@ var noop = function () {
 };
 
 module.exports = function () {
+    var RESIGN_MOVE = {
+        san: 'resign'
+    };
+
     var MultiplayerChessHiveGame = function (room, options) {
         var _name = util.randomString(8);
         this.options = _.defaults(_.extend({}, options), {
             autoRestart: true, // TODO: should be false and room destroyed
             restartTimeout: 15000,
             digestTimeout: 30 * 1000,
-            digestTimeoutNoPlayer: 3000,
+            digestTimeoutNoPlayer: 5000,
             maxRounds: 400,
             destroyWhenLastPlayerLeft: true,
             emitPlayerConnectEvents: false
@@ -64,6 +68,8 @@ module.exports = function () {
             var game = new chess.Chess();
             this.instance = game;
 
+            //TODO: put variables relevant to the "digest" cycle in own context object
+            // e.g. "playerResigned", "colorToMove", etc.
             this.possibleMoves = game.moves({verbose: true});
             this.suggestedMoves = {
                 white: {},
@@ -76,6 +82,7 @@ module.exports = function () {
             this.cancelDigestTimeout = noop;
             this.cancelRestartTimeout = noop;
             this.colorToMove = 'white';
+            this.playerResigned = false;
         };
 
         this.hasPlayer = function (player) {
@@ -167,9 +174,7 @@ module.exports = function () {
             player.socket.emit('new-top-rated-game-move', this.createTopRatedMoveMessage());
 
             var suggestedMovesMsg = {
-                team: this.suggestedMoves[side],
-                //white: this.suggestedMoves.white,
-                //black: this.suggestedMoves.black
+                team: this.suggestedMoves[side]
             };
 
             player.socket.emit('suggested-moves', suggestedMovesMsg);
@@ -211,26 +216,19 @@ module.exports = function () {
                         return;
                     }
 
-                    var acceptedSuggestedMove = game.suggestMoveForColor(providedTurn, move);
-                    logger.debug('player %s suggests valid move %s in game %s', player.name, acceptedSuggestedMove.san, game.name());
-
-                    //playerInRoom.socket.emit('new-move', acceptedSuggestedMove);
-                    // TODO: do not send moves to opponents
-                    //playerInRoom.socket.broadcast.to(game.room).emit('new-move', acceptedSuggestedMove);
+                    game.suggestMoveForColor(providedTurn, move);
+                    logger.debug('player %s suggests valid move %s in game %s', player.name, move, game.name());
                 } else {
-                    // TODO: add logic for resignation-vote
-                    //game.suggestMoveForColor(providedTurn, 'resign');
+                    game.suggestResignation(providedTurn);
                     logger.debug('player %s suggests resignation in game %s', player.name, game.name());
                 }
 
                 var suggestedMovesMsg = {
-                    team: game.suggestedMoves[playerInRoom.side],
-                    //white: game.suggestedMoves.white,
-                    //black: game.suggestedMoves.black
+                    team: game.suggestedMoves[playerInRoom.side]
                 };
 
                 playerInRoom.socket.emit('suggested-moves', suggestedMovesMsg);
-                playerInRoom.socket.broadcast.to(game.socketId()  + '#' + playerInRoom.side).emit('suggested-moves', suggestedMovesMsg);
+                playerInRoom.socket.broadcast.to(game.socketId() + '#' + playerInRoom.side).emit('suggested-moves', suggestedMovesMsg);
 
                 var moveSelector = isVoteForResignation ? 'resign' : move.san;
                 var teamSize = game.playerCount[playerInRoom.side];
@@ -246,8 +244,8 @@ module.exports = function () {
             });
         };
 
-        this.createTopRatedMoveMessage = function (moveOrUndefined) {
-            var move = moveOrUndefined ||
+        this.createTopRatedMoveMessage = function (moveOrFalsy) {
+            var move = moveOrFalsy ||
                 (this.lastMoves.length > 0 ? this.lastMoves[this.lastMoves.length - 1] : null);
 
             var gameOver = this.isGameOver();
@@ -266,6 +264,7 @@ module.exports = function () {
                 digestTimeout: this.options.digestTimeout,
                 gameOver: gameOver,
                 inDraw: inDraw,
+                playerResigned: this.playerResigned,
                 colorToMove: this.colorToMove,
                 winner: inDraw ? 'draw' : oppositeColor
             };
@@ -283,6 +282,10 @@ module.exports = function () {
 
             if (moveKey === null) {
                 return null;
+            }
+
+            if (moveKey === 'resign') {
+                return RESIGN_MOVE;
             }
 
             var move = _.findWhere(this.possibleMoves, {
@@ -311,40 +314,43 @@ module.exports = function () {
             return move;
         };
 
-        this.suggestMoveForColor = function (color, data) {
-            if (data === 'resign') {
-                //if (!this.suggestedMoves[color]['resign']) {
-                //    this.suggestedMoves[color]['resign'] = 0;
-                //}
-                //this.suggestedMoves[color]['resign']++;
-            } else {
-                /*
-                 data := {
-                 token: token,
-                 source: source,
-                 target: target,
-                 turn: game.turn() === 'b' ? 'black' : 'white'
-                 }
-                 */
-                if (!isValidMove(this, data)) {
-                    return;
-                }
-                var validMove = asValidMoveOrNull(this, data);
-
-                var moveKey = validMove.san;
-                if (!this.suggestedMoves[color][moveKey]) {
-                    this.suggestedMoves[color][moveKey] = {
-                        value: 0,
-                        color: color,
-                        san: validMove.san,
-                        source: data.source,
-                        target: data.target
-                    };
-                }
-                this.suggestedMoves[color][moveKey].value++;
-
-                return validMove;
+        this.suggestResignation = function (color) {
+            if (!this.suggestedMoves[color]['resign']) {
+                this.suggestedMoves[color]['resign'] = {
+                    value: 0,
+                    color: color,
+                    description: 'resign'
+                };
             }
+            this.suggestedMoves[color]['resign'].value++;
+        };
+
+        this.suggestMoveForColor = function (color, data) {
+            /*
+             data := {
+             token: token,
+             source: source,
+             target: target,
+             turn: game.turn() === 'b' ? 'black' : 'white'
+             }
+             */
+            if (!isValidMove(this, data)) {
+                return;
+            }
+            var validMove = asValidMoveOrNull(this, data);
+
+            var moveKey = validMove.san;
+            if (!this.suggestedMoves[color][moveKey]) {
+                this.suggestedMoves[color][moveKey] = {
+                    value: 0,
+                    color: color,
+                    description: validMove.san,
+                    san: validMove.san,
+                    source: data.source,
+                    target: data.target
+                };
+            }
+            this.suggestedMoves[color][moveKey].value++;
         };
 
         this.makeMove = function (move) {
@@ -387,6 +393,7 @@ module.exports = function () {
         this.isGameOver = function () {
             var maxRoundsReached = this.digestCount >= this.options.maxRounds;
             var isGameOver = maxRoundsReached ||
+                this.playerResigned ||
                 this.instance.game_over() === true ||
                 this.instance.in_draw() === true ||
                 this.possibleMoves.length === 0;
@@ -418,14 +425,24 @@ module.exports = function () {
 
             this.nextDigestTime = Date.now() + nextDigest;
 
+            this.playerResigned = false;
             if (!this.isGameOver()) {
 
                 var moveMadeOrNull = null;
 
                 if (!isFirstRun) {
                     var move = this.getMoveForColorOrRandom(currentColorToMove);
-                    this.makeMove(move);
-                    moveMadeOrNull = move;
+
+                    if (move === RESIGN_MOVE) {
+                        // TODO: implement resignation logic
+                        // TODO: game must end, opposite site wins
+                        logger.error('%s wants to resign - not implemented yet.', currentColorToMove);
+                        this.playerResigned = true;
+                        moveMadeOrNull = RESIGN_MOVE;
+                    } else {
+                        this.makeMove(move);
+                        moveMadeOrNull = move;
+                    }
                 }
 
                 if (gameHasPlayers) {
@@ -451,6 +468,11 @@ module.exports = function () {
                     };
                 })(this, nextDigest, this.digestCount + 1);
             } else {
+                var oppositeColor = function (color) {
+                    return color === 'white' ? 'black' : color === 'black' ? 'white' : null;
+                };
+                var winner = this.playerResigned ? oppositeColor(currentColorToMove) : currentColorToMove;
+
                 this.status = 'ended';
                 logger.debug('game %s %s', this.name(), this.status);
 
@@ -458,7 +480,7 @@ module.exports = function () {
                 if (gameHasPlayers) {
                     var gameOverMsg = {
                         gameOver: true,
-                        winner: currentColorToMove,
+                        winner: winner,
                         inDraw: this.instance.in_draw(),
                         restarts: shouldRestart,
                         restartTimeout: this.options.restartTimeout,
@@ -517,7 +539,6 @@ module.exports = function () {
             return !!asValidMoveOrNull(game, data);
         };
 
-        // start the game immediately
         this.start();
     };
 

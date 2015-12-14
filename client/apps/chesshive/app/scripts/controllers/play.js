@@ -21,8 +21,8 @@ angular.module('chesshiveApp')
       template: '<div class="panel panel-default" data-ng-show="model.gameOver">' +
       ' <div class="panel-heading">' +
       '  <p style="margin-top:13px;">' +
-      '   <span data-ng-show="inDraw">Game over. Game ended in a<strong> a draw</strong>.</span>' +
-      '   <span data-ng-hide="inDraw">' +
+      '   <span data-ng-show="model.inDraw">Game over. Game ended in a<strong> a draw</strong>.</span>' +
+      '   <span data-ng-hide="model.inDraw">' +
       '    <img data-ng-src="{{model.winnerImageSrc}}" style="height:32px; margin-top:-7px;"/>' +
       '    Game over. <strong>{{gameOverData.winner | firstCharUppercase }}</strong> won.' +
       '   </span>' +
@@ -55,11 +55,14 @@ angular.module('chesshiveApp')
         HiveChessService.socket().forward('new-top-rated-game-move', $scope);
         $scope.$on('socket:new-top-rated-game-move', function (event, data) {
           $scope.model.gameOver = data.gameOver;
+          $scope.model.inDraw = data.inDraw;
+          $scope.gameOverData = {};
         });
 
         function onGameOver(data) {
           $scope.gameOverData = data;
           $scope.model.gameOver = data.gameOver;
+          $scope.model.inDraw = data.inDraw;
 
           $scope.model.winnerImageSrc = data.inDraw ? '' : HiveChessService.createImageSource(data.winner.charAt(0) + 'K');
 
@@ -245,6 +248,10 @@ angular.module('chesshiveApp')
             updateCountDownTimer();
           }
         });
+
+        $scope.$on('$destroy', function () {
+          cancelTimeout();
+        });
       }
     };
   })
@@ -410,6 +417,15 @@ angular.module('chesshiveApp')
     var isInTurn = function () {
       return !$scope.model.gameOver && $scope.model.joined && game.turn() === $scope.model.color.charAt(0);
     };
+
+    chessHiveGameSocket.forward('game-over', $scope);
+    $scope.$on('socket:game-over', function (event, data) {
+      $scope.model.gameOver = data.gameOver;
+      $scope.model.isInTurn = false;
+      $scope.model.voted = false;
+      $scope.model.vote = null;
+    });
+
     /*
      * A new move has been chosen by the server => update the UI with the move
      */
