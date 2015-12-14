@@ -113,6 +113,9 @@ angular
   .controller('HeadCtrl', function (applicationConfig) {
     this.appName = applicationConfig.name;
   })
+  .controller('BodyCtrl', function (applicationConfig) {
+    this.appName = applicationConfig.name;
+  })
   .controller('NavbarCtrl', function (applicationConfig) {
     this.appName = applicationConfig.name;
   });

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "chesshive",
+    "name": "multichess",
     "host": "chess.openmrc.com",
     "port": "3000",
     "mongo": {
@@ -25,7 +25,7 @@
   },
   "ui": {
     "app": {
-      "name": "chesshive",
+      "name": "multichess",
       "debugEnabled": false,
       "io": {
         "host": "http://chess.openmrc.com:3000"
