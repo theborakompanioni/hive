@@ -2,6 +2,8 @@
 set -e # exit with nonzero exit code if anything fails
 
 cd client/apps/chesshive/dist
+
+rm -rf .git/
 git init
 
 git config user.name "Travis CI"

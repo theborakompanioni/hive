@@ -3,6 +3,8 @@ set -e # exit with nonzero exit code if anything fails
 
 # go to the out directory and create a *new* Git repo
 cd client/apps/chesshive/dist
+
+rm -rf .git/
 git init
 
 # inside this git repo we'll pretend to be a new user
