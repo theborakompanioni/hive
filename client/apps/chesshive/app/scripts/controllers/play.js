@@ -119,7 +119,8 @@ angular.module('chesshiveApp')
       '</div>' +
       '<div data-ng-switch-when="true">' +
       ' <table class="table table-bordered table-condensed table-striped table-hover">' +
-      '  <tr data-ng-repeat="move in suggestedMoves | orderBy:\'value\':true">' +
+      '  <tr data-ng-repeat="move in suggestedMoves | orderBy:\'value\':true"' +
+      '    data-ng-class="{ success: model.vote.move.san === move.key }">' +
       '   <td>' +
       '    <img data-ng-if="move.image" ' +
       '         data-ng-src="images/chesspieces/wikipedia/{{move.image}}" ' +
@@ -138,6 +139,7 @@ angular.module('chesshiveApp')
       '</div>',
       controller: function ($scope) {
         $scope.model = {
+          vote: null,
           voted: false
         };
         $scope.movesHaveBeenSuggested = false;
@@ -172,6 +174,7 @@ angular.module('chesshiveApp')
         $scope.$on('socket:new-top-rated-game-move', function () {
           $scope.suggestedMoves = null;
           $scope.movesHaveBeenSuggested = false;
+          $scope.model.vote = null;
           $scope.model.voted = false;
         });
 
@@ -179,7 +182,8 @@ angular.module('chesshiveApp')
           $rootScope.$broadcast('chesshive:vote-for-suggested-move', suggestedMove);
         };
 
-        $scope.$on('chesshive:new-move', function () {
+        $scope.$on('chesshive:new-move', function (event, data) {
+          $scope.model.vote = data;
           $scope.model.voted = true;
         });
       }
@@ -506,7 +510,9 @@ angular.module('chesshiveApp')
           token: token,
           turn: color,
           resign: true,
-          move: null
+          move: {
+            san: 'resign'
+          }
         };
         chessHiveGameSocket.emit('new-move', vote);
         onPlayerVote(vote);
