@@ -333,7 +333,8 @@ angular.module('chesshiveApp')
       isInTurn: false,
       orientation: 'white',
       gameHistoryString: '',
-      pieceImageSrc: null
+      pieceImageSrc: null,
+      panelClass: 'panel-default'
     };
 
     /*
@@ -433,7 +434,7 @@ angular.module('chesshiveApp')
       return !$scope.model.gameOver && $scope.model.joined && game.turn() === $scope.model.color.charAt(0);
     };
 
-    var updatePanelClass = function() {
+    var updatePanelClass = function () {
       var gameRunningAndInTurn = !$scope.model.gameOver && $scope.model.isInTurn;
       $scope.model.panelClass = !gameRunningAndInTurn ? 'panel-default' :
         $scope.model.voted ? 'panel-success' : 'panel-info';
@@ -448,7 +449,6 @@ angular.module('chesshiveApp')
 
       updatePanelClass();
     });
-
 
 
     /*
