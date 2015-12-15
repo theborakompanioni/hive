@@ -25,11 +25,13 @@ angular.module('chesshiveApp')
       '   <span data-ng-hide="model.inDraw">' +
       '    <img data-ng-src="{{model.winnerImageSrc}}" style="height:32px; margin-top:-7px;"/>' +
       '    Game over. <strong>{{gameOverData.winner | firstCharUppercase }}</strong> won.' +
-      '   </span>' +
       '  </p>' +
       ' </div>' +
       ' <div class="panel-body">' +
       '  <h3>Game over.</h3>' +
+      '  <h4 data-ng-show="!!gameOverData.resignation">' +
+      '    <strong>{{gameOverData.resignation.color | firstCharUppercase }}</strong> resigned.' +
+      '  </h4>' +
       '  <span data-ng-show="gameOverData.restarts">' +
       '   A new game will start shortly.' +
       '  </span>' +
@@ -328,6 +330,7 @@ angular.module('chesshiveApp')
       vote: null,
       color: null,
       gameOver: false,
+      isInTurn: false,
       orientation: 'white',
       gameHistoryString: '',
       pieceImageSrc: null
@@ -337,7 +340,7 @@ angular.module('chesshiveApp')
      * When a piece is dragged, check if it the current player has the turn
      */
     $scope.onDragStart = function (source, piece/*, position, orientation*/) {
-      if (!$scope.model.joined) {
+      if (!$scope.model.joined || $scope.model.voted) {
         return false;
       }
 
@@ -397,6 +400,8 @@ angular.module('chesshiveApp')
           showCloseButton: true,
           hideAfter: 3
         });
+
+        updatePanelClass();
       }
     };
 
@@ -428,13 +433,23 @@ angular.module('chesshiveApp')
       return !$scope.model.gameOver && $scope.model.joined && game.turn() === $scope.model.color.charAt(0);
     };
 
+    var updatePanelClass = function() {
+      var gameRunningAndInTurn = !$scope.model.gameOver && $scope.model.isInTurn;
+      $scope.model.panelClass = !gameRunningAndInTurn ? 'panel-default' :
+        $scope.model.voted ? 'panel-success' : 'panel-info';
+    };
+
     chessHiveGameSocket.forward('game-over', $scope);
     $scope.$on('socket:game-over', function (event, data) {
       $scope.model.gameOver = data.gameOver;
       $scope.model.isInTurn = false;
       $scope.model.voted = false;
       $scope.model.vote = null;
+
+      updatePanelClass();
     });
+
+
 
     /*
      * A new move has been chosen by the server => update the UI with the move
@@ -466,10 +481,12 @@ angular.module('chesshiveApp')
           hideAfter: 3
         });
       }
+
+      updatePanelClass();
     });
 
     $scope.voteForResignation = function () {
-      if ($scope.model.joined === true && !$scope.model.voted) {
+      if ($scope.model.joined && !$scope.model.voted) {
         var color = game.turn() === 'b' ? 'black' : 'white';
         var vote = {
           token: token,
@@ -481,6 +498,8 @@ angular.module('chesshiveApp')
 
         $scope.model.voted = true;
         $scope.model.vote = 'resign';
+
+        updatePanelClass();
       }
     };
 

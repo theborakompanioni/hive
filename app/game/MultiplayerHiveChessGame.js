@@ -481,6 +481,9 @@ module.exports = function () {
                     var gameOverMsg = {
                         gameOver: true,
                         winner: winner,
+                        resignation: !this.playerResigned ? null : {
+                            color: oppositeColor(winner)
+                        },
                         inDraw: this.instance.in_draw(),
                         restarts: shouldRestart,
                         restartTimeout: this.options.restartTimeout,

@@ -10,14 +10,10 @@
       </div>
     </div>
   </div-->
-  
+
   <div class="row">
     <div class="col-xs-12 col-sm-8 col-md-7">
-      <div id="board-panel" class="panel" data-ng-class="{
-      'panel-info': !model.gameOver && !model.voted && model.isInTurn,
-      'panel-success': !model.gameOver && model.voted && model.isInTurn,
-      'panel-default': model.gameOver || !model.isInTurn
-    }">
+      <div id="board-panel" class="panel {{model.panelClass}}">
         <div class="panel-heading">
           <p style="margin-top:13px; position:relative; overflow: hidden;"
              data-ng-switch data-on="model.turn">
@@ -100,11 +96,7 @@
     </div>
 
     <div class="col-xs-12 col-sm-4 col-md-5" data-ng-show="!model.gameOver">
-      <div class="panel" data-ng-class="{
-      'panel-info': !model.gameOver && !model.voted && model.isInTurn,
-      'panel-success': !model.gameOver && model.voted && model.isInTurn,
-      'panel-default': model.gameOver || !model.isInTurn
-    }">
+      <div class="panel {{model.panelClass}}">
         <div class="panel-heading">
           <p style="margin-top:13px;">
             <img data-ng-src="{{model.pieceImageSrc}}" style="height:32px; margin-top:-7px;" alt="Your color"/>
