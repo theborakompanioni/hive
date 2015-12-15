@@ -36,15 +36,19 @@ angular.module('chesshiveApp')
       '  <div data-ng-if="gameOverData.restarts" ' +
       '    data-chesshive-countdown ' +
       '    data-time="model.countdown"' +
-      '    data-show-progress-bar="true"' +
+      '    data-show-progress-bar="static.showProgressBar"' +
       '   ></div>' +
       ' </div>' +
       ' <div class="panel-footer">' +
       ' </div>' +
       '</div>',
       controller: function ($scope, $timeout, HiveChessService) {
+        $scope.static = {
+          showProgressBar: true
+        };
         $scope.model = {
-          gameOver: false
+          gameOver: false,
+          countdown: 0
         };
 
         HiveChessService.socket().forward('game-over', $scope);
@@ -183,10 +187,10 @@ angular.module('chesshiveApp')
     return {
       scope: {
         time: '=',
-        max: '=',
-        showProgressBar: '=',
-        progressBarColor: '=',
-        showText: '='
+        max: '=?',
+        showProgressBar: '=?',
+        progressBarColor: '=?',
+        showText: '=?'
       },
       template: '<div data-ng-show="countdown >= 0">' +
       ' <span data-ng-show="showText">{{countdown / 1000 | number:precision}}s</span>' +
@@ -265,12 +269,18 @@ angular.module('chesshiveApp')
       ' <div data-ng-show="!gameOver">' +
       ' <div data-chesshive-countdown ' +
       '  data-time="model.countdown"' +
-      '  data-show-progress-bar="showProgressBar" ' +
-      '  data-show-text="showText"' +
+      '  data-show-progress-bar="static.showProgressBar" ' +
+      '  data-show-text="static.showText"' +
       ' ></div>' +
       '</div>',
       controller: function ($scope, $timeout) {
-        $scope.model = {};
+        $scope.static = {
+          showProgressBar: $scope.showProgressBar,
+          showText: $scope.showText
+        };
+        $scope.model = {
+          countdown: 0
+        };
         chessHiveGameSocket.forward('new-top-rated-game-move', $scope);
         $scope.$on('socket:new-top-rated-game-move', function (event, data) {
           $scope.data = data;
