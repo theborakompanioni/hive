@@ -127,7 +127,7 @@ angular.module('chesshiveApp')
       '    <span class="badge badge-default">{{move.key}}</span>' +
       '    <button class="btn btn-default btn-xs pull-right" ' +
       '       data-ng-click="voteForMove(move.move)" ' +
-      '       data-ng-show="!model.voted">' +
+      '       data-ng-show="!model.voted && move.selectable">' +
       '      <i class="fa fa-check"></i>' +
       '    </button>' +
       '   </td>' +
@@ -161,7 +161,8 @@ angular.module('chesshiveApp')
                 key: key,
                 value: move.value,
                 image: image,
-                move: move
+                move: move,
+                selectable: key !== 'resign' && !$scope.model.voted
               });
             });
           }
@@ -175,7 +176,6 @@ angular.module('chesshiveApp')
         });
 
         $scope.voteForMove = function (suggestedMove) {
-          $scope.model.voted = true;
           $rootScope.$broadcast('chesshive:vote-for-suggested-move', suggestedMove);
         };
 
@@ -377,8 +377,6 @@ angular.module('chesshiveApp')
 
     var suggestMove = function (color, san, source, target) {
       if (!$scope.model.voted) {
-        $scope.model.voted = true;
-
         var vote = {
           token: token,
           turn: color,
@@ -390,21 +388,37 @@ angular.module('chesshiveApp')
           }
         };
 
-        $scope.model.vote = vote.move;
-
+        onPlayerVote(vote);
         chessHiveGameSocket.emit('new-move', vote);
-        $rootScope.$broadcast('chesshive:new-move', vote);
-
-        Messenger().post({
-          message: 'Your move has been suggested: ' + source + ' -> ' + target,
-          type: 'success',
-          showCloseButton: true,
-          hideAfter: 3
-        });
 
         updatePanelClass();
       }
     };
+
+    var onPlayerVote = function (vote) {
+      $rootScope.$broadcast('chesshive:new-move', vote);
+
+      if (!vote.resign) {
+        Messenger().post({
+          message: 'Your move has been suggested: ' + vote.move.source + ' -> ' + vote.move.target,
+          type: 'success',
+          showCloseButton: true,
+          hideAfter: 3
+        });
+      } else {
+        Messenger().post({
+          message: 'Your move has been suggested: resign',
+          type: 'warning',
+          showCloseButton: true,
+          hideAfter: 3
+        });
+      }
+    };
+
+    $scope.$on('chesshive:new-move', function (vote) {
+      $scope.model.voted = true;
+      $scope.model.vote = !!vote.resign ? 'resign' : vote.move;
+    });
 
     // update the board position after the piece snap
     // for castling, en passant, pawn promotion
@@ -495,9 +509,7 @@ angular.module('chesshiveApp')
           move: null
         };
         chessHiveGameSocket.emit('new-move', vote);
-
-        $scope.model.voted = true;
-        $scope.model.vote = 'resign';
+        onPlayerVote(vote);
 
         updatePanelClass();
       }
