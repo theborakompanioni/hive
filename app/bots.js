@@ -25,7 +25,7 @@ var Bot = function (roomName, options) {
         }
     });
 
-    logger.error('create bot with skill level %d', this.options.skillLevel);
+    logger.warn('create bot with skill level %d', this.options.skillLevel);
 
     this.engine = engineFactory(options);
     this.game = new chess.Chess();

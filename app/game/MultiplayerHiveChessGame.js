@@ -412,8 +412,7 @@ module.exports = function () {
             this.latestDigestTime = Date.now();
             var isFirstRun = this.digestCount === 0;
 
-            var firstPlayer = this.players[0];
-            var gameHasPlayers = !!firstPlayer;
+            var firstPlayerOrNull = this.players[0] || null;
 
             var currentColorToMove = this.colorToMove;
 
@@ -427,16 +426,12 @@ module.exports = function () {
 
             this.playerResigned = false;
             if (!this.isGameOver()) {
-
                 var moveMadeOrNull = null;
 
                 if (!isFirstRun) {
                     var move = this.getMoveForColorOrRandom(currentColorToMove);
-
                     if (move === RESIGN_MOVE) {
-                        // TODO: implement resignation logic
-                        // TODO: game must end, opposite site wins
-                        logger.error('%s wants to resign - not implemented yet.', currentColorToMove);
+                        logger.debug('%s votes for resignation', currentColorToMove);
                         this.playerResigned = true;
                         moveMadeOrNull = RESIGN_MOVE;
                     } else {
@@ -445,10 +440,10 @@ module.exports = function () {
                     }
                 }
 
-                if (gameHasPlayers) {
+                if (firstPlayerOrNull) {
                     var newTopRatedGameMoveMsg = this.createTopRatedMoveMessage(moveMadeOrNull);
-                    firstPlayer.socket.emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
-                    firstPlayer.socket.broadcast.to(this.socketId()).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
+                    firstPlayerOrNull.socket.emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
+                    firstPlayerOrNull.socket.broadcast.to(this.socketId()).emit('new-top-rated-game-move', newTopRatedGameMoveMsg);
                 }
             }
 
@@ -477,7 +472,7 @@ module.exports = function () {
                 logger.debug('game %s %s', this.name(), this.status);
 
                 var shouldRestart = this.shouldRestart();
-                if (gameHasPlayers) {
+                if (firstPlayerOrNull) {
                     var gameOverMsg = {
                         gameOver: true,
                         winner: winner,
@@ -490,8 +485,8 @@ module.exports = function () {
                         restartTime: Date.now() + this.options.restartTimeout,
                         now: Date.now()
                     };
-                    firstPlayer.socket.emit('game-over', gameOverMsg);
-                    firstPlayer.socket.broadcast.to(this.socketId()).emit('game-over', gameOverMsg);
+                    firstPlayerOrNull.socket.emit('game-over', gameOverMsg);
+                    firstPlayerOrNull.socket.broadcast.to(this.socketId()).emit('game-over', gameOverMsg);
                 }
 
                 if (shouldRestart) {
