@@ -19,8 +19,24 @@ var createStockfishGoCommand = function (settings) {
     return 'go';
 };
 
+var getMovesForStockfish = function (game) {
+    var moves = '';
+    var history = game.history({verbose: true});
 
-module.exports = function (settings) {
+    for (var i = 0; i < history.length; ++i) {
+        var move = history[i];
+        moves += ' ' + move.from + move.to + (move.promotion ? move.promotion : '');
+    }
+
+    return moves;
+};
+
+var createStockfishPositionCommand = function (game) {
+    var moves = getMovesForStockfish(game);
+    return 'position startpos moves' + moves;
+};
+
+var createPlayerEngine = function (settings) {
     // http://support.stockfishchess.org/kb/advanced-topics/engine-parameters
     var options = _.defaults(_.extend({}, settings), {
         contemptFactor: 0, // -100 - 100
@@ -107,11 +123,67 @@ module.exports = function (settings) {
             });
             //deferred = Q.defer(); // create promise which will resolve if move IA has best move
 
-            var positionCommand = util.createStockfishPositionCommand(game);
+            var positionCommand = createStockfishPositionCommand(game);
             engine.postMessage(positionCommand);
 
             var goCommand = createStockfishGoCommand(goCommandOptions);
             engine.postMessage(goCommand);
         }
     };
+};
+
+var createAnalyticsEngine = function () {
+    var onMessageHandler = [];
+    var onMessage = function (message) {
+        onMessageHandler.forEach(function (handler) {
+            handler(message);
+        });
+    };
+
+    var engine = stockfish();
+
+    engine.onmessage = function (event) {
+        var line;
+
+        if (event && typeof event === 'object') {
+            line = event.data;
+        } else {
+            line = event;
+        }
+        onMessage(line);
+    };
+
+    engine.postMessage('uci');
+
+    return {
+        ucinewgame: function () {
+            engine.postMessage('ucinewgame');
+        },
+        analyze: function (chessjsGameInstance) {
+            var positionCommand = createStockfishPositionCommand(chessjsGameInstance);
+
+            engine.postMessage(positionCommand);
+            engine.postMessage('eval');
+        },
+        onMessage: function (callback) {
+            onMessageHandler.push(callback);
+            return function () {
+                // TODO: remove message handler
+                return false;
+            };
+        },
+        onTotalEvaluation: function (callback) {
+            this.onMessage(function (message) {
+                console.log('onTotalEvaluation not implemented yet');
+
+                // message e.g.: -> Total Evaluation: -0.07 (white side)
+                //callback(line);
+            });
+        }
+    };
+};
+
+module.exports = {
+    PlayerEngine: createPlayerEngine,
+    AnalyticsEngine: createAnalyticsEngine
 };

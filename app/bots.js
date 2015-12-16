@@ -3,7 +3,7 @@ var chess = require('chess.js');
 var logger = require('./../setup/logging')({}).standard();
 var util = require('./util');
 
-var engineFactory = require('./engine');
+var engineFactory = require('./engine').PlayerEngine;
 
 var socketClientFactory = require('socket.io-client');
 

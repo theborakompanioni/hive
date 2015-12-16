@@ -5,6 +5,8 @@ var stockfish = require('stockfish');
 var util = require('./../util');
 var logger = require('./../../setup/logging')({}).standard();
 
+var engineFactory = require('../engine').AnalyticsEngine;
+
 var noop = function () {
 };
 
@@ -25,21 +27,10 @@ module.exports = function () {
             emitPlayerConnectEvents: false
         });
 
-        this.engine = stockfish();
-        this.engine.postMessage('uci');
-        this.engine.onmessage = function (event) {
-            var line;
-
-            if (event && typeof event === 'object') {
-                line = event.data;
-            } else {
-                line = event;
-            }
-
+        this.engine = engineFactory();
+        this.engine.onMessage(function (line) {
             console.log(line);
-            // message: -> Total Evaluation: -0.07 (white side)
-
-        };
+        });
 
         this.room = room;
         this.players = [];
@@ -63,7 +54,7 @@ module.exports = function () {
         logger.info('init new game %s in room %s', this.name(), this.room.name());
 
         this._reset = function () {
-            this.engine.postMessage('ucinewgame');
+            this.engine.ucinewgame();
 
             var game = new chess.Chess();
             this.instance = game;
@@ -359,9 +350,7 @@ module.exports = function () {
             this.instance.move(move);
             this.lastMoves.push(move);
 
-            var positionCommand = util.createStockfishPositionCommand(this.instance);
-            this.engine.postMessage(positionCommand);
-            this.engine.postMessage('eval');
+            this.engine.analyze(this.instance);
 
             this.possibleMoves = this.instance.moves({verbose: true});
 
