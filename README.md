@@ -1,4 +1,9 @@
-chesshive
+[![Build Status](https://api.travis-ci.org/theborakompanioni/hive.png?branch=master)](https://travis-ci.org/theborakompanioni/hive)
+[![Dependency Status](https://david-dm.org/theborakompanioni/hive.svg)](https://david-dm.org/theborakompanioni/hive)
+[![devDependency Status](https://david-dm.org/theborakompanioni/hive/dev-status.svg)](https://david-dm.org/theborakompanioni/hive#info=devDependencies)
+![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)
+
+hive
 ==================================================
 
 ## Run the application
