@@ -77,25 +77,29 @@ var Bot = function (roomName, options) {
 
             moveTimeoutId = setTimeout(function () {
                 if (isInTurn()) {
-                    var engineMove = self.engine.getForBestMoveOrNull();
-                    if (!engineMove) {
+                    var engineMoveOrNull = self.engine.getForBestMoveOrNull();
+                    if (!engineMoveOrNull) {
                         logger.warn('Bot %s could not find a good move', self.name);
                     } else {
-                        var move = self.game.move(engineMove);
-                        var vote = {
-                            token: roomName,
-                            turn: self.color,
-                            resign: false,
-                            move: {
-                                san: move.san,
-                                source: engineMove.from,
-                                target: engineMove.to
-                            }
-                        };
+                        var moveOrNull = self.game.move(engineMoveOrNull);
+                        if (!moveOrNull) {
+                            logger.warn('Bot %s provided an illegal move %j', self.name, moveOrNull);
+                        } else {
+                            var vote = {
+                                token: roomName,
+                                turn: self.color,
+                                resign: false,
+                                move: {
+                                    san: moveOrNull.san,
+                                    source: engineMoveOrNull.from,
+                                    target: engineMoveOrNull.to
+                                }
+                            };
 
-                        logger.debug('Bot %s suggests move', self.name, vote);
+                            logger.debug('Bot %s suggests move', self.name, vote);
 
-                        socket.emit('new-move', vote);
+                            socket.emit('new-move', vote);
+                        }
                     }
                 }
             }, makeMoveInSeconds * 1000);
