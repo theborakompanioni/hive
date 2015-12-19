@@ -208,7 +208,7 @@ module.exports = function () {
                     }
 
                     game.suggestMoveForColor(providedTurn, move);
-                    logger.debug('player %s suggests valid move %s in game %s', player.name, move, game.name());
+                    logger.debug('player %s suggests valid move %s in game %s', player.name, move.san, game.name());
                 } else {
                     game.suggestResignation(providedTurn);
                     logger.debug('player %s suggests resignation in game %s', player.name, game.name());
