@@ -79,7 +79,7 @@ require('./setup/bots')('the-master-board', {
 
 setTimeout(function () {
     require('./setup/bots')('the-master-board', {
-        amount: 0,
+        amount: 13,
         bots: {
             autoReconnect: {
                 reconnectTimeout: function () {
