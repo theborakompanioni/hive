@@ -29,7 +29,10 @@ module.exports = function () {
 
         this.engine = engineFactory();
         this.engine.onMessage(function (line) {
-            console.log(line);
+            logger.info(line);
+        });
+        this.engine.onTotalEvaluation(function (line) {
+            logger.info('Evaluation for white: %d', line);
         });
 
         this.room = room;

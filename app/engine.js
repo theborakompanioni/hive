@@ -153,6 +153,26 @@ var createAnalyticsEngine = function () {
         onMessage(line);
     };
 
+    var onTotalEvaluationMessage = (function () {
+        // message e.g.: -> Total Evaluation: -0.07 (white side)
+        var totalEvaluationRegex = /^Total Evaluation:\s(-?\d+\.?\d+)[\s\S]+$/;
+        return function (message, callback) {
+            if (message && message.charAt(0) === 'T' && totalEvaluationRegex.test(message)) {
+                var score = parseFloat(message.match(totalEvaluationRegex)[1]);
+                return callback(score);
+            }
+        };
+    })();
+
+    var registerOnMessageHandler = function (callback) {
+        onMessageHandler.push(callback);
+        return function () {
+            // TODO: remove message handler
+            return false;
+        };
+    };
+
+
     engine.postMessage('uci');
 
     return {
@@ -166,18 +186,11 @@ var createAnalyticsEngine = function () {
             engine.postMessage('eval');
         },
         onMessage: function (callback) {
-            onMessageHandler.push(callback);
-            return function () {
-                // TODO: remove message handler
-                return false;
-            };
+            return registerOnMessageHandler(callback);
         },
         onTotalEvaluation: function (callback) {
-            this.onMessage(function (message) {
-                console.log('onTotalEvaluation not implemented yet');
-
-                // message e.g.: -> Total Evaluation: -0.07 (white side)
-                //callback(line);
+            return registerOnMessageHandler(function (message) {
+                onTotalEvaluationMessage(message, callback);
             });
         }
     };
