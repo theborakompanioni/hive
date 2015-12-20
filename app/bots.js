@@ -22,6 +22,36 @@ var Bot = function (roomName, options) {
             return {
                 depth: min
             };
+        },
+        resignsOnEvaluationPredicate: function (totalEvaluationOrNull) {
+            var random = Math.random();
+            if (totalEvaluationOrNull === null) {
+                return false;
+            }
+
+            if (random < 0.01) {
+                return true;
+            }
+            if (totalEvaluationOrNull < -2.5 && random < 0.05) {
+                return true;
+            }
+            if (totalEvaluationOrNull < -5 && random < 0.1) {
+                return true;
+            }
+            if (totalEvaluationOrNull < -10 && random < 0.50) {
+                return true;
+            }
+            if (totalEvaluationOrNull < -15 && random < 0.80) {
+                return true;
+            }
+            if (totalEvaluationOrNull < -17.5 && random < 0.90) {
+                return true;
+            }
+            if (totalEvaluationOrNull < -20) {
+                return true;
+            }
+
+            return false;
         }
     });
 
@@ -67,6 +97,8 @@ var Bot = function (roomName, options) {
         self.game.load_pgn(data.pgn);
         self.turn = self.game.turn();
 
+        self.engine.analyze(self.game);
+
         if (!self.gameOver && isInTurn()) {
             var makeMoveInSeconds = self.options.waitSupplier();
             var moveSettings = self.options.moveSettingsSupplier;
@@ -77,28 +109,49 @@ var Bot = function (roomName, options) {
 
             moveTimeoutId = setTimeout(function () {
                 if (isInTurn()) {
-                    var engineMoveOrNull = self.engine.getForBestMoveOrNull();
-                    if (!engineMoveOrNull) {
-                        logger.warn('Bot %s could not find a good move', self.name);
+                    var totalEvaluationOrNull = self.engine.getTotalEvaluationForColorOrNull();
+                    if (totalEvaluationOrNull !== null && self.color === 'black') {
+                        totalEvaluationOrNull *= -1;
+                    }
+
+                    var shouldResign = self.options.resignsOnEvaluationPredicate(totalEvaluationOrNull);
+                    if (shouldResign) {
+                        var vote = {
+                            token: roomName,
+                            turn: self.color,
+                            resign: true,
+                            move: {
+                                san: 'resgin'
+                            }
+                        };
+
+                        logger.warn('Bot %s suggests resignation', self.name);
+
+                        socket.emit('new-move', vote);
                     } else {
-                        var moveOrNull = self.game.move(engineMoveOrNull);
-                        if (!moveOrNull) {
-                            logger.warn('Bot %s provided an illegal move %j', self.name, moveOrNull);
+                        var engineMoveOrNull = self.engine.getBestMoveOrNull();
+                        if (!engineMoveOrNull) {
+                            logger.warn('Bot %s could not find a good move', self.name);
                         } else {
-                            var vote = {
-                                token: roomName,
-                                turn: self.color,
-                                resign: false,
-                                move: {
-                                    san: moveOrNull.san,
-                                    source: engineMoveOrNull.from,
-                                    target: engineMoveOrNull.to
-                                }
-                            };
+                            var moveOrNull = self.game.move(engineMoveOrNull);
+                            if (!moveOrNull) {
+                                logger.warn('Bot %s provided an illegal move %j', self.name, moveOrNull);
+                            } else {
+                                var vote = {
+                                    token: roomName,
+                                    turn: self.color,
+                                    resign: false,
+                                    move: {
+                                        san: moveOrNull.san,
+                                        source: engineMoveOrNull.from,
+                                        target: engineMoveOrNull.to
+                                    }
+                                };
 
-                            logger.debug('Bot %s suggests move', self.name, vote);
+                                logger.debug('Bot %s suggests move', self.name, vote);
 
-                            socket.emit('new-move', vote);
+                                socket.emit('new-move', vote);
+                            }
                         }
                     }
                 }
