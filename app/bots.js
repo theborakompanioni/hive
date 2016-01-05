@@ -23,36 +23,52 @@ var Bot = function (roomName, options) {
                 depth: min
             };
         },
-        resignsOnEvaluationPredicate: function (totalEvaluationOrNull) {
-            var random = Math.random();
-            if (totalEvaluationOrNull === null) {
+        resignsOnEvaluationPredicate: (function () {
+            var shouldResign = function (evaluation) {
+                if (evaluation === null) {
+                    return false;
+                }
+                var random = Math.random();
+
+                if (random < 0.01) {
+                    return true;
+                }
+                if (evaluation > 0) {
+                    return false; // leave early
+                }
+
+                if (evaluation < -2.5 && random < 0.05) {
+                    return true;
+                }
+                if (evaluation < -5 && random < 0.1) {
+                    return true;
+                }
+                if (evaluation < -10 && random < 0.50) {
+                    return true;
+                }
+                if (evaluation < -15 && random < 0.80) {
+                    return true;
+                }
+                if (evaluation < -17.5 && random < 0.90) {
+                    return true;
+                }
+                if (evaluation < -20) {
+                    return true;
+                }
+
                 return false;
-            }
+            };
 
-            if (random < 0.01) {
-                return true;
-            }
-            if (totalEvaluationOrNull < -2.5 && random < 0.05) {
-                return true;
-            }
-            if (totalEvaluationOrNull < -5 && random < 0.1) {
-                return true;
-            }
-            if (totalEvaluationOrNull < -10 && random < 0.50) {
-                return true;
-            }
-            if (totalEvaluationOrNull < -15 && random < 0.80) {
-                return true;
-            }
-            if (totalEvaluationOrNull < -17.5 && random < 0.90) {
-                return true;
-            }
-            if (totalEvaluationOrNull < -20) {
-                return true;
-            }
+            var lastTotalEvaluationOrNull = null;
+            return function (totalEvaluationOrNull) {
+                var evaluation = Math.max(totalEvaluationOrNull || 0, lastTotalEvaluationOrNull || 0);
+                var resign = shouldResign(evaluation);
 
-            return false;
-        }
+                lastTotalEvaluationOrNull = totalEvaluationOrNull;
+
+                return resign;
+            }
+        })()
     });
 
     logger.warn('create bot with skill level %d', this.options.skillLevel);
