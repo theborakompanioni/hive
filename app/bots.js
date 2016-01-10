@@ -12,7 +12,7 @@ var Bot = function (roomName, options) {
     this.name = 'bot_' + util.randomString(8);
     this.options = _.defaults(_.extend({}, options), {
         contemptFactor: Math.round(Math.random() * 200) - 100,
-        skillLevel: Math.round(Math.random() * 12) + 3,
+        skillLevel: Math.round(Math.random() * 10) + 8,
         autoReconnect: false,
         waitSupplier: function () {
             return Math.floor(Math.random() * 20) + 1;
