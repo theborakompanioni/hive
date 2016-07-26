@@ -3,13 +3,6 @@
     "name": "multichess",
     "host": "chess.openmrc.com",
     "port": "3000",
-    "mongo": {
-      "db": "mongodb://localhost/test"
-    },
-    "elasticsearch": {
-      "host": "localhost",
-      "port": "9200"
-    },
     "morgan": {
       "dir": "logs",
       "format": "combined"
@@ -28,7 +21,7 @@
       "name": "multichess",
       "debugEnabled": false,
       "io": {
-        "host": "http://chess.openmrc.com:3000"
+        "host": "https://chess.openmrc.com"
       },
       "google": {
         "analytics": {
