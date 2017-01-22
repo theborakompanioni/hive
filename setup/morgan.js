@@ -1,4 +1,5 @@
 var fs = require('fs');
+var path = require('path');
 var FileStreamRotator = require('file-stream-rotator');
 var morgan = require('morgan'); // http request logger middleware
 
@@ -8,7 +9,8 @@ module.exports = function (app, conf) {
 
     // create a rotating write stream
     var accessLogStream = FileStreamRotator.getStream({
-        filename: conf.dir + '/access-%DATE%.log',
+        date_format: 'YYYYMMDD',
+        filename: path.join(conf.dir, 'access-%DATE%.log'),
         frequency: 'daily',
         verbose: false
     });
