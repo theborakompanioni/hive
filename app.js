@@ -12,6 +12,11 @@ var logger = require('./setup/logging')().standard();
 
 var DEFAULT_PORT = 3000;
 
+process.on('SIGINT', function() {
+    // added to enable ctrl+c termination in docker container
+    process.exit();
+});
+
 var app = express();
 
 // configure database
@@ -72,5 +77,6 @@ setTimeout(function () {
         }
     });
 }, 2000);
+
 
 module.exports = app;
