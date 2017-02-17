@@ -4,12 +4,12 @@ node_js:
   - '0.10'
 env:
   global:
-  - GH_PAGES_REF: github.com/theborakompanioni/hive.git
-  - GH_PAGES_MULTICHESS_REF: github.com/multichess/multichess.github.io.git
-  - secure: "aSLo3MW2bHMVC643uv+cIaC7aYPe4CJTxMAp5Yp/LH/QdTQPGeh55P9pshJUaY2vI934XrNF1zRbAI+aUCJOysRZrkg9IVdt3WHQUB9rE+rIX7lJeGkacdIaxmMFlkSX6ZZKcv/gRN9wDiDxwqZI65Q+fogAeAs5qKFxO8+DgvqjHrGNg4pBcy5bgg/SLXwS9RhYOFsjNBH4kUpsevHMtAvXGoC/RVO+kUQajlyGT47Mv09w4rmR6oBL8hNlFFmb3kRRytOTp/wjNAYhAVoDM3cYo4mLZ7/atpcqYH31Ji8C8GbGGZAqq8sm6eKZJQLY2QjTk6yBu62Dbms7tNFeUWAK6xLUbEBhwOC+CPyFD+jouANmGsczj8NYpZZvlERmoWaqJi2hMzcx7XhaOFEZq+HQn78+h/ayUEZUSl7iBq15HAHhtPgguSYNtRo6LttCUUNVO0QXcO182AldUGGbZ8E/W2TnGvJ8TAJE0Q5hw4Wr2r7gZdn+6J7ev+GbSOv9ZGx/MZJUr4OU65u21MoLOusRY10YG7KvNrxZ73iKJ7JpZK7XuQ/dwBJHswvFmuWBFwx+/eMlhhdgx9BcScx6GTlVvBZph8mIxR7IEFjFjSZH6Wt+2ObMy7G4R8OFlu1XEnl1k+K+GkR01gniGooZ3Ndze/Kb7pN1NbfTVGmQfEc="
+    - GH_PAGES_REF: github.com/theborakompanioni/hive.git
+    - GH_PAGES_MULTICHESS_REF: github.com/multichess/multichess.github.io.git
+    - secure: "aSLo3MW2bHMVC643uv+cIaC7aYPe4CJTxMAp5Yp/LH/QdTQPGeh55P9pshJUaY2vI934XrNF1zRbAI+aUCJOysRZrkg9IVdt3WHQUB9rE+rIX7lJeGkacdIaxmMFlkSX6ZZKcv/gRN9wDiDxwqZI65Q+fogAeAs5qKFxO8+DgvqjHrGNg4pBcy5bgg/SLXwS9RhYOFsjNBH4kUpsevHMtAvXGoC/RVO+kUQajlyGT47Mv09w4rmR6oBL8hNlFFmb3kRRytOTp/wjNAYhAVoDM3cYo4mLZ7/atpcqYH31Ji8C8GbGGZAqq8sm6eKZJQLY2QjTk6yBu62Dbms7tNFeUWAK6xLUbEBhwOC+CPyFD+jouANmGsczj8NYpZZvlERmoWaqJi2hMzcx7XhaOFEZq+HQn78+h/ayUEZUSl7iBq15HAHhtPgguSYNtRo6LttCUUNVO0QXcO182AldUGGbZ8E/W2TnGvJ8TAJE0Q5hw4Wr2r7gZdn+6J7ev+GbSOv9ZGx/MZJUr4OU65u21MoLOusRY10YG7KvNrxZ73iKJ7JpZK7XuQ/dwBJHswvFmuWBFwx+/eMlhhdgx9BcScx6GTlVvBZph8mIxR7IEFjFjSZH6Wt+2ObMy7G4R8OFlu1XEnl1k+K+GkR01gniGooZ3Ndze/Kb7pN1NbfTVGmQfEc="
   # docker $DOCKER_USERNAME, $DOCKER_PASSWORD
-  - secure: "RThIXojO2cRZ6TbQVBmXy99aa8r3g20DM4yzfMSW3r/IHTd+ViVoJ+7HSoKdKcRfuOsJCRtjskBe+dcBSL+JxGFtYjt/TD/QpkaXNcsfL+NA5Ukg7WYvfHqSWdHjWK0tvYwDIKOEI6vEhES9ORsgNIyF/zIRmXM7TZWhP1i2UR7lR4WYnwLIX3X5QV8N1YweYraln3M2bgMeAuNYFU83rLCOVoFJ+npjvzuXULqbf8pb5ykWXH60MTU0yvLCabUk/xe9W5TaKHCVezHt9JtTNnCgPPhvi160CG7ggu2BG/0d5iCFv+bfcuexylnGa40FKgBdafQYXeXeCer9Rog0R0Dn3kMYZ9LfanODK3xP7eMyET6KEmgSodzHF9/9Il31gSlyHRZA30XTnK+xHT3BdZCLmO3tnBvUc6E7+ScdHaqhCmC8mykHrJ45jpQVohjO6V94gv0oSeBJV0vT1MTHVshCoyk1Y/PGXS8+jgeuzjQDvMvvRDAit6rRmfHJ8JlUqrayLAllkKC2JYEczyq/LhyfV9HKMt3ANadjOXnoHyW3PGeRRE7VEb3QukAXeHxGA4DyS9Pm5D5lq40Ah+i2W58FFsaedkI0kxeVoaFHIpVuQ08x2dQ3PH+I5qDIi8UpgNvnGybLLnsDtVGzPvuo4hnL+juq9DEi+6WyE5ElkhQ="
-  - secure: "h827wHiWuUGAdxk4Jc1jiJfcLeXkf+kDtIe6HQp4PzW3LlFVm7HIws2LozUM+9afkgOl2JTs1tACDASFnV7sly2tZ60LNTlOA16wdOHgUM4QL9DGTNjxXAxFFcSgosmnSnetXIJr4Gr1A8AgsmjSpt4/x/RRV8jFN4IhryFMKZU5hFZ8KPwQ+jbyWZ2by6Dk0b8QWpdT/tUmmIdavdoDArXM2sZ9g8gONcQvDd1i2uKjMoXlyCC7cTyIWkYMaNeb94G1ws675NPiFWyHzd3Lq3Z639bpmksjMp3K93YYMDA7i/t4wrkTZFT13+PyDsGMscvaCtCXCoXCX1M2/5drPBmc0HPMcmScVAua6OVsoB15K4/aGnNyEYWOl5IFEzHA9A9bvMJ6gnEyrok/mEQaEacQFHLt/iX7z5KLBMd78FS3nb7v9mPpCQKyCWl3AEDXaZpQecfJPs+TMqruDBzCJcZyh4EjgYgB6TEAItq0Hbgyw804COtK9HwMjTcKG1mGRQtNmo3VpT0AMHf31otygyydq74s1aq/Fz4UKZCXP4Q9NmRQvLZktDK8ZTERepPY2UFRgnXlrm2SYwGBt8iSiMn1KkCCfDWOhSD5IjIp7G1Y5WoJXCiafggnspqDdznmMTTfAOKpGlc2XrGbbrQldoWWn3dka0vbJASnc1woP2g="
+    - secure: "RThIXojO2cRZ6TbQVBmXy99aa8r3g20DM4yzfMSW3r/IHTd+ViVoJ+7HSoKdKcRfuOsJCRtjskBe+dcBSL+JxGFtYjt/TD/QpkaXNcsfL+NA5Ukg7WYvfHqSWdHjWK0tvYwDIKOEI6vEhES9ORsgNIyF/zIRmXM7TZWhP1i2UR7lR4WYnwLIX3X5QV8N1YweYraln3M2bgMeAuNYFU83rLCOVoFJ+npjvzuXULqbf8pb5ykWXH60MTU0yvLCabUk/xe9W5TaKHCVezHt9JtTNnCgPPhvi160CG7ggu2BG/0d5iCFv+bfcuexylnGa40FKgBdafQYXeXeCer9Rog0R0Dn3kMYZ9LfanODK3xP7eMyET6KEmgSodzHF9/9Il31gSlyHRZA30XTnK+xHT3BdZCLmO3tnBvUc6E7+ScdHaqhCmC8mykHrJ45jpQVohjO6V94gv0oSeBJV0vT1MTHVshCoyk1Y/PGXS8+jgeuzjQDvMvvRDAit6rRmfHJ8JlUqrayLAllkKC2JYEczyq/LhyfV9HKMt3ANadjOXnoHyW3PGeRRE7VEb3QukAXeHxGA4DyS9Pm5D5lq40Ah+i2W58FFsaedkI0kxeVoaFHIpVuQ08x2dQ3PH+I5qDIi8UpgNvnGybLLnsDtVGzPvuo4hnL+juq9DEi+6WyE5ElkhQ="
+    - secure: "h827wHiWuUGAdxk4Jc1jiJfcLeXkf+kDtIe6HQp4PzW3LlFVm7HIws2LozUM+9afkgOl2JTs1tACDASFnV7sly2tZ60LNTlOA16wdOHgUM4QL9DGTNjxXAxFFcSgosmnSnetXIJr4Gr1A8AgsmjSpt4/x/RRV8jFN4IhryFMKZU5hFZ8KPwQ+jbyWZ2by6Dk0b8QWpdT/tUmmIdavdoDArXM2sZ9g8gONcQvDd1i2uKjMoXlyCC7cTyIWkYMaNeb94G1ws675NPiFWyHzd3Lq3Z639bpmksjMp3K93YYMDA7i/t4wrkTZFT13+PyDsGMscvaCtCXCoXCX1M2/5drPBmc0HPMcmScVAua6OVsoB15K4/aGnNyEYWOl5IFEzHA9A9bvMJ6gnEyrok/mEQaEacQFHLt/iX7z5KLBMd78FS3nb7v9mPpCQKyCWl3AEDXaZpQecfJPs+TMqruDBzCJcZyh4EjgYgB6TEAItq0Hbgyw804COtK9HwMjTcKG1mGRQtNmo3VpT0AMHf31otygyydq74s1aq/Fz4UKZCXP4Q9NmRQvLZktDK8ZTERepPY2UFRgnXlrm2SYwGBt8iSiMn1KkCCfDWOhSD5IjIp7G1Y5WoJXCiafggnspqDdznmMTTfAOKpGlc2XrGbbrQldoWWn3dka0vbJASnc1woP2g="
 
 services:
   - docker
@@ -26,17 +26,17 @@ before_install:
   - 'phantomjs --version'
   - 'firefox --version'
   - 'chromium-browser --version'
-before_script:
-  - 'npm install -g grunt-cli'
-  - 'npm install -g karma-cli'
-  - 'npm install -g bower'
+install:
+  - npm install
+  - npm install -g grunt-cli
+  - npm install -g karma-cli
+  - npm install -g bower
 script:
   - 'npm --prefix ./client/apps/chesshive install ./client/apps/chesshive'
   - 'export NODE_ENV=production && grunt --base ./client/apps/chesshive --gruntfile ./client/apps/chesshive/Gruntfile.js build'
 after_script:
   - 'sh deploy-ghpages.sh'
   - 'sh deploy-ghpages-multichess.sh'
-
 after_success:
   - export REPO=$DOCKER_USERNAME/multichess
   - export COMMIT=${TRAVIS_COMMIT::6}
