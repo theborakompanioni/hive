@@ -7,7 +7,7 @@
   "license": "MIT",
   "main": "app.js",
   "dependencies": {
-    "body-parser": "^1.14.2",
+    "body-parser": "^1.17.2",
     "chess.js": "^0.1.0",
     "compression": "^1.6.0",
     "config": "^1.17.1",
