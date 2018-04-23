@@ -224,10 +224,17 @@ module.exports = function () {
                 playerInRoom.socket.emit('suggested-moves', suggestedMovesMsg);
                 playerInRoom.socket.broadcast.to(game.socketId() + '#' + playerInRoom.side).emit('suggested-moves', suggestedMovesMsg);
 
-                var moveSelector = isVoteForResignation ? 'resign' : move.san;
-                var teamSize = game.playerCount[playerInRoom.side];
+                var userProvidedMoveSelector = isVoteForResignation ? 'resign' : move.san;
                 var suggestedMovesForCurrentTeam = game.suggestedMoves[playerInRoom.side];
-                var countOfSuggestedMove = suggestedMovesForCurrentTeam[moveSelector].value;
+                var suggestedMoveForCurrentTeam = suggestedMovesForCurrentTeam[userProvidedMoveSelector];
+                if (!suggestedMoveForCurrentTeam) {
+                    logger.warn('player %s suggests invalid san %s', player.name, move.san);
+                    return;
+                }
+
+                var countOfSuggestedMove = suggestedMoveForCurrentTeam.value;
+
+                var teamSize = game.playerCount[playerInRoom.side];
                 var moreThanHalfHaveVotedForCurrentMove = countOfSuggestedMove > Math.floor(teamSize / 2);
 
                 var countOfVotesForTeam = _.sum(_.pluck(suggestedMovesForCurrentTeam, 'value'));
